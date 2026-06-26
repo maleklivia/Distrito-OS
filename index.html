@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Distrito OS</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegação principal">
+        <div class="brand">
+          <div class="brand-mark">DX</div>
+          <div>
+            <strong>Distrito OS</strong>
+            <span>Distrito XVII</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="dashboard" title="Dashboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-item" data-view="pedidos" title="Pedidos">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l2 4v12H5V8l2-4Zm.4 4h9.2l-.8-2H8.2l-.8 2ZM7 10v8h10v-8H7Zm2 2h6v2H9v-2Z"/></svg>
+            <span>Pedidos</span>
+          </button>
+          <button class="nav-item" data-view="clientes" title="Clientes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0 2c-3.9 0-7 2-7 4.5V20h14v-2.5C16 15 12.9 13 9 13Zm8.5-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm.5 1c-.8 0-1.5.1-2.1.4 1.4 1 2.1 2.4 2.1 4.1V20h4v-2.2c0-2.7-2-4.8-4-4.8Z"/></svg>
+            <span>Clientes</span>
+          </button>
+          <button class="nav-item" data-view="produtos" title="Produtos">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6V3Zm2 2v14h8V5H8Zm1 2h6v2H9V7Zm0 4h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
+            <span>Produtos</span>
+          </button>
+          <button class="nav-item" data-view="estoque" title="Estoque">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7 12 3l9 4v10l-9 4-9-4V7Zm9 2.2L17.7 7 12 4.8 6.3 7 12 9.2ZM5 8.6v7.1l6 2.7v-7.1L5 8.6Zm14 0-6 2.7v7.1l6-2.7V8.6Z"/></svg>
+            <span>Estoque</span>
+          </button>
+          <button class="nav-item" data-view="financeiro" title="Financeiro">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5Zm2 3v8h12V8H6Zm2 2h4v2H8v-2Zm6 0h2v2h-2v-2Zm-6 4h8v1H8v-1Z"/></svg>
+            <span>Financeiro</span>
+          </button>
+          <button class="nav-item" data-view="relatorios" title="Relatórios">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5V3Zm2 2v14h10V5H7Zm2 10h2V9H9v6Zm4 0h2V7h-2v8Z"/></svg>
+            <span>Relatórios</span>
+          </button>
+          <button class="nav-item" data-view="ia" title="IA">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2h2v3h3v2H8V5h3V2Zm-5 8h12a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-4a3 3 0 0 1 3-3Zm0 2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H6Zm2 2h2v2H8v-2Zm6 0h2v2h-2v-2Z"/></svg>
+            <span>IA</span>
+          </button>
+          <button class="nav-item" data-view="config" title="Configurações">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13.5c.1-.5.1-1 .1-1.5s0-1-.1-1.5l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2.6-1.5L14 2h-4l-.4 3a8 8 0 0 0-2.6 1.5l-2.4-1-2 3.5 2 1.5c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2.6 1.5l.4 3h4l.4-3a8 8 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg>
+            <span>Config</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span>Modo offline</span>
+          <strong>v1.0</strong>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="mobile-menu" id="menuToggle" title="Abrir menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>
+          </button>
+          <div>
+            <p class="eyebrow">Operação em tempo real</p>
+            <h1 id="viewTitle">Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <label class="search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 19.6-4.7-4.7a7 7 0 1 0-1.4 1.4l4.7 4.7 1.4-1.4ZM5 11a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"/></svg>
+              <input id="globalSearch" type="search" placeholder="Buscar cliente, pedido ou produto" />
+            </label>
+            <button class="icon-button" id="seedButton" title="Recarregar dados de exemplo">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h8V3l-3.3 3.3Z"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <section class="view active" id="dashboard" aria-labelledby="viewTitle">
+          <div class="hero-panel">
+            <div>
+              <p class="eyebrow">Hoje</p>
+              <h2>Controle do Distrito XVII sem depender do feeling.</h2>
+              <p>Dados de pedidos, estoque, clientes e caixa em uma tela para decidir compra, produção e campanha.</p>
+            </div>
+            <div class="hero-metric">
+              <span>Faturamento</span>
+              <strong id="heroRevenue">R$ 0,00</strong>
+              <small id="heroDelta">+0% vs. ontem</small>
+            </div>
+          </div>
+
+          <div class="metric-grid" id="metricGrid"></div>
+
+          <div class="content-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Vendas</p>
+                  <h3>Faturamento da semana</h3>
+                </div>
+                <select id="chartMode" class="control">
+                  <option value="revenue">Faturamento</option>
+                  <option value="orders">Pedidos</option>
+                </select>
+              </div>
+              <div class="bar-chart" id="salesChart"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Produtos</p>
+                  <h3>Mais vendidos</h3>
+                </div>
+              </div>
+              <div class="rank-list" id="topProducts"></div>
+            </section>
+          </div>
+
+          <div class="content-grid">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Alertas</p>
+                  <h3>Estoque crítico</h3>
+                </div>
+              </div>
+              <div class="stock-alerts" id="stockAlerts"></div>
+            </section>
+
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Cozinha</p>
+                  <h3>Pedidos recentes</h3>
+                </div>
+                <button class="primary-button" data-action="new-order">Novo pedido</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Pedido</th>
+                      <th>Cliente</th>
+                      <th>Produto</th>
+                      <th>Status</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentOrders"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="pedidos">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Operação</p>
+                <h3>Pedidos</h3>
+              </div>
+              <button class="primary-button" data-action="new-order">Novo pedido</button>
+            </div>
+            <div class="kanban" id="orderBoard"></div>
+          </div>
+        </section>
+
+        <section class="view" id="clientes">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">CRM</p>
+                <h3>Clientes</h3>
+              </div>
+              <div class="segmented">
+                <button class="segment active" data-filter="all">Todos</button>
+                <button class="segment" data-filter="VIP">VIP</button>
+                <button class="segment" data-filter="Frequente">Frequentes</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Telefone</th>
+                    <th>Pedidos</th>
+                    <th>Ticket médio</th>
+                    <th>Total gasto</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="produtos">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Cardápio</p>
+                <h3>Produtos e CMV</h3>
+              </div>
+              <button class="primary-button" data-action="new-product">Novo produto</button>
+            </div>
+            <div class="product-grid" id="productGrid"></div>
+          </div>
+        </section>
+
+        <section class="view" id="estoque">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Compras</p>
+                <h3>Estoque inteligente</h3>
+              </div>
+              <button class="primary-button" data-action="new-stock">Registrar compra</button>
+            </div>
+            <div class="stock-grid" id="stockGrid"></div>
+          </div>
+        </section>
+
+        <section class="view" id="financeiro">
+          <div class="metric-grid compact" id="financeMetrics"></div>
+          <div class="content-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Caixa</p>
+                  <h3>Fluxo financeiro</h3>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Descrição</th>
+                      <th>Categoria</th>
+                      <th>Tipo</th>
+                      <th>Valor</th>
+                    </tr>
+                  </thead>
+                  <tbody id="financeTable"></tbody>
+                </table>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">DRE</p>
+                  <h3>Resumo do mês</h3>
+                </div>
+              </div>
+              <div class="dre-list" id="dreList"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="relatorios">
+          <div class="report-grid" id="reportsGrid"></div>
+        </section>
+
+        <section class="view" id="ia">
+          <div class="content-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Assistente</p>
+                  <h3>Pergunte ao Distrito OS</h3>
+                </div>
+              </div>
+              <div class="assistant-box" id="assistantLog"></div>
+              <form class="assistant-form" id="assistantForm">
+                <input id="assistantInput" type="text" placeholder="Ex.: quanto vendi hoje?" autocomplete="off" />
+                <button class="primary-button" type="submit">Perguntar</button>
+              </form>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Sugestões</p>
+                  <h3>Comandos rápidos</h3>
+                </div>
+              </div>
+              <div class="quick-prompts">
+                <button data-prompt="Quanto vendi hoje?">Vendas de hoje</button>
+                <button data-prompt="Quanto tenho de bacon?">Estoque de bacon</button>
+                <button data-prompt="Quem é meu cliente VIP?">Cliente VIP</button>
+                <button data-prompt="Qual produto mais vende?">Produto líder</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="config">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Sistema</p>
+                <h3>Configurações</h3>
+              </div>
+              <button class="primary-button" id="saveConfig">Salvar</button>
+            </div>
+            <div class="settings-grid">
+              <label>
+                Nome da operação
+                <input id="businessName" type="text" value="Distrito XVII" />
+              </label>
+              <label>
+                Meta de faturamento diário
+                <input id="dailyGoal" type="number" value="1500" />
+              </label>
+              <label>
+                CMV máximo desejado
+                <input id="cmvGoal" type="number" value="32" />
+              </label>
+              <label class="toggle-row">
+                Alertas de estoque
+                <input id="stockAlertsToggle" type="checkbox" checked />
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-header">
+          <h3 id="modalTitle">Novo pedido</h3>
+          <button class="icon-button" id="closeModal" title="Fechar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6.4 5 12.6 12.6-1.4 1.4L5 6.4 6.4 5Zm11.2 0L19 6.4 6.4 19 5 17.6 17.6 5Z"/></svg>
+          </button>
+        </div>
+        <form class="modal-form" id="modalForm"></form>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
