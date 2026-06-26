@@ -51,6 +51,13 @@ const seedData = {
     { day: "Sex", revenue: 1540, orders: 36 },
     { day: "Sáb", revenue: 1880, orders: 42 },
     { day: "Dom", revenue: 1320, orders: 29 }
+  ],
+  campaigns: [
+    { name: "Batata XVII — Lançamento", channel: "Instagram", status: "Ativo", reach: 4200, leads: 38, budget: 150 },
+    { name: "Combo Fim de Semana", channel: "WhatsApp", status: "Encerrado", reach: 820, leads: 64, budget: 0 },
+    { name: "Caldos de Inverno", channel: "Meta Ads", status: "Ativo", reach: 11500, leads: 92, budget: 300 },
+    { name: "Cupom VIP", channel: "WhatsApp", status: "Pausado", reach: 180, leads: 27, budget: 0 },
+    { name: "iFood — Destaque junho", channel: "iFood", status: "Ativo", reach: 6800, leads: 51, budget: 200 }
   ]
 };
 
@@ -65,6 +72,7 @@ const viewTitles = {
   estoque: "Estoque",
   financeiro: "Financeiro",
   relatorios: "Relatórios",
+  marketing: "Marketing",
   ia: "IA operacional",
   config: "Configurações"
 };
@@ -132,6 +140,7 @@ function render() {
   renderClients();
   renderFinance();
   renderReports();
+  renderMarketing();
 }
 
 function renderMetrics() {
@@ -325,6 +334,61 @@ function renderReports() {
   `).join("");
 }
 
+function renderMarketing() {
+  const campaigns = state.campaigns || [];
+  const totalReach = campaigns.reduce((sum, c) => sum + c.reach, 0);
+  const totalLeads = campaigns.reduce((sum, c) => sum + c.leads, 0);
+  const totalBudget = campaigns.reduce((sum, c) => sum + c.budget, 0);
+  const conversion = totalReach > 0 ? ((totalLeads / totalReach) * 100).toFixed(1) : "0.0";
+
+  const metrics = [
+    { label: "Alcance total", value: totalReach.toLocaleString("pt-BR"), delta: "todas as campanhas" },
+    { label: "Leads gerados", value: totalLeads, delta: "contatos qualificados" },
+    { label: "Taxa de conversão", value: `${conversion}%`, delta: "leads / alcance" },
+    { label: "Investimento", value: currency(totalBudget), delta: "campanhas pagas" }
+  ];
+
+  document.getElementById("marketingMetrics").innerHTML = metrics.map((item) => `
+    <article class="metric-card">
+      <span>${item.label}</span>
+      <strong>${item.value}</strong>
+      <small>${item.delta}</small>
+    </article>
+  `).join("");
+
+  const campaignStatusClass = { Ativo: "green", Encerrado: "muted", Pausado: "" };
+
+  document.getElementById("campaignsTable").innerHTML = campaigns.map((item) => {
+    const conv = item.reach > 0 ? ((item.leads / item.reach) * 100).toFixed(1) : "0.0";
+    return `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.channel}</td>
+        <td><span class="pill ${campaignStatusClass[item.status] || ""}">${item.status}</span></td>
+        <td>${item.reach.toLocaleString("pt-BR")}</td>
+        <td>${item.leads}</td>
+        <td>${conv}%</td>
+        <td>${item.budget > 0 ? currency(item.budget) : "—"}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const channelMap = {};
+  campaigns.forEach((c) => {
+    if (!channelMap[c.channel]) channelMap[c.channel] = { leads: 0, reach: 0 };
+    channelMap[c.channel].leads += c.leads;
+    channelMap[c.channel].reach += c.reach;
+  });
+  const channels = Object.entries(channelMap).sort((a, b) => b[1].leads - a[1].leads);
+
+  document.getElementById("channelRank").innerHTML = channels.map(([channel, data]) => `
+    <div class="rank-item">
+      <span>${channel}</span>
+      <strong>${data.leads} leads</strong>
+    </div>
+  `).join("");
+}
+
 function askAssistant(prompt) {
   const question = prompt.toLowerCase();
   let answer = "Ainda estou na versão demonstrativa. Posso responder sobre vendas, estoque, clientes VIP e produtos mais vendidos.";
@@ -392,6 +456,16 @@ function openModal(type) {
         ["cost", "Custo unitário", "number"]
       ],
       submit: "Registrar"
+    },
+    "new-campaign": {
+      title: "Nova campanha",
+      fields: [
+        ["name", "Nome da campanha", "text"],
+        ["channel", "Canal", "text"],
+        ["reach", "Alcance estimado", "number"],
+        ["budget", "Investimento (R$)", "number"]
+      ],
+      submit: "Criar campanha"
     }
   };
 
@@ -438,6 +512,18 @@ function handleModalSubmit(event) {
       cost: Number(data.cost),
       sold: 0,
       category: data.category
+    });
+  }
+
+  if (type === "new-campaign") {
+    if (!state.campaigns) state.campaigns = [];
+    state.campaigns.unshift({
+      name: data.name,
+      channel: data.channel,
+      status: "Ativo",
+      reach: Number(data.reach),
+      leads: 0,
+      budget: Number(data.budget)
     });
   }
 
