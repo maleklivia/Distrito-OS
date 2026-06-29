@@ -39,6 +39,262 @@ const seedData = {
 };
 
 const storeKey = "distrito-os-v4";
+
+const recipes = {
+  1: {
+    portion: "500 g",
+    ingredients: [
+      { name: "Batata palito (crua)",   qty: "350 g" },
+      { name: "Óleo de soja (fritura)", qty: "60 ml"  },
+      { name: "Sal refinado",           qty: "6 g"    },
+      { name: "Páprica defumada",       qty: "2 g"    },
+      { name: "Orégano seco",           qty: "1 g"    },
+      { name: "Caixa kraft 500 ml",     qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Corte as batatas em palito de 0,8 cm. Deixe de molho em água fria por 15 min.",
+      "Seque bem com papel toalha — batata úmida não fica crocante.",
+      "Frite em óleo a 175 °C por 6–8 min até dourar por igual.",
+      "Escorra. Tempere com sal, páprica e orégano ainda quente.",
+      "Embale na caixa kraft. Lacre com o adesivo.",
+    ]
+  },
+  2: {
+    portion: "500 g",
+    ingredients: [
+      { name: "Batata palito (crua)",   qty: "350 g" },
+      { name: "Óleo de soja (fritura)", qty: "60 ml"  },
+      { name: "Cheddar cremoso",        qty: "80 g"   },
+      { name: "Bacon fatiado",          qty: "80 g"   },
+      { name: "Sal refinado",           qty: "4 g"    },
+      { name: "Páprica defumada",       qty: "2 g"    },
+      { name: "Caixa kraft 500 ml",     qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Corte o bacon em cubinhos e grelhe em frigideira seca até crocante. Reserve.",
+      "Prepare a batata conforme a Ficha da Batata Clássica.",
+      "Aqueça o cheddar em banho-maria até cremoso e homogêneo.",
+      "Monte: batata frita → regue com cheddar → finalize com bacon crocante.",
+      "Embale na caixa kraft. Lacre com o adesivo.",
+    ]
+  },
+  3: {
+    portion: "700 g",
+    ingredients: [
+      { name: "Batata palito (crua)",   qty: "450 g" },
+      { name: "Óleo de soja (fritura)", qty: "80 ml"  },
+      { name: "Cheddar cremoso",        qty: "80 g"   },
+      { name: "Bacon fatiado",          qty: "80 g"   },
+      { name: "Calabresa fatiada",      qty: "60 g"   },
+      { name: "Cebola",                 qty: "40 g"   },
+      { name: "Cebolinha fresca",       qty: "10 g"   },
+      { name: "Sal e pimenta",          qty: "a gosto"},
+      { name: "Óleo para refogar",      qty: "10 ml"  },
+      { name: "Caixa kraft 700 ml",     qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Grelhe o bacon até crocante. Reserve.",
+      "Refogue a calabresa fatiada com a cebola em óleo até caramelizar. Reserve.",
+      "Prepare a batata conforme a Ficha da Batata Clássica.",
+      "Aqueça o cheddar em banho-maria até cremoso.",
+      "Monte em camadas: batata → cheddar → bacon → calabresa acebolada → cebolinha picada.",
+      "Embale na caixa kraft 700 ml. Lacre com o adesivo.",
+    ]
+  },
+  4: {
+    portion: "400 g + molho",
+    ingredients: [
+      { name: "Peito de frango",        qty: "300 g"  },
+      { name: "Farinha panko",          qty: "60 g"   },
+      { name: "Farinha de trigo",       qty: "50 g"   },
+      { name: "Ovo",                    qty: "1 un"   },
+      { name: "Leite",                  qty: "30 ml"  },
+      { name: "Alho em pó",            qty: "3 g"    },
+      { name: "Sal refinado",           qty: "5 g"    },
+      { name: "Páprica defumada",       qty: "3 g"    },
+      { name: "Óleo de soja (fritura)", qty: "100 ml" },
+      { name: "Molho da casa (sachê)",  qty: "30 g"   },
+      { name: "Embalagem",             qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Corte o frango em cubos de 3–4 cm. Tempere com sal, alho e páprica. Deixe 20 min.",
+      "Passe cada cubo na farinha de trigo → ovo batido com leite → panko.",
+      "Pressione bem o panko para aderir.",
+      "Frite em óleo a 180 °C por 5–6 min até dourar. Não encher a fritadeira.",
+      "Escorra em papel toalha.",
+      "Embale com o molho da casa em sachê separado.",
+    ]
+  },
+  5: {
+    portion: "400 g + molho",
+    ingredients: [
+      { name: "Peito de frango",        qty: "300 g"  },
+      { name: "Farinha temperada",      qty: "60 g"   },
+      { name: "Alho em pó",            qty: "3 g"    },
+      { name: "Limão (suco)",           qty: "15 ml"  },
+      { name: "Sal refinado",           qty: "5 g"    },
+      { name: "Óleo de soja (fritura)", qty: "80 ml"  },
+      { name: "Molho especial (sachê)", qty: "40 g"   },
+      { name: "Embalagem",             qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Corte o frango em tiras de 1 cm × 5 cm (iscas).",
+      "Tempere com sal, alho e suco de limão. Deixe marinar 20 min na geladeira.",
+      "Passe as iscas na farinha temperada. Sacuda o excesso.",
+      "Frite em óleo a 180 °C por 4–5 min até dourar e crocante.",
+      "Escorra em papel toalha. Embale com molho especial em sachê separado.",
+    ]
+  },
+  6: {
+    portion: "400 g",
+    ingredients: [
+      { name: "Calabresa fatiada",      qty: "350 g"  },
+      { name: "Cebola",                 qty: "100 g"  },
+      { name: "Óleo de soja",           qty: "20 ml"  },
+      { name: "Sal e pimenta-do-reino", qty: "a gosto"},
+      { name: "Embalagem",             qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Fatie a calabresa em rodelas de 0,5 cm.",
+      "Grelhe na chapa bem quente sem óleo até marcar dos dois lados.",
+      "Na mesma chapa, refogue a cebola fatiada em óleo até caramelizar (dourada).",
+      "Misture calabresa e cebola. Ajuste sal e pimenta.",
+      "Embale. Sirva imediatamente — cai temperatura rápido.",
+    ]
+  },
+  7: {
+    portion: "350 g",
+    ingredients: [
+      { name: "Toucinho com pele",      qty: "500 g"  },
+      { name: "Sal grosso",             qty: "10 g"   },
+      { name: "Alho em pó",            qty: "5 g"    },
+      { name: "Óleo de soja (fritura)", qty: "200 ml" },
+      { name: "Embalagem",             qty: "1 un"   },
+      { name: "Guardanapo descartável", qty: "2 un"   },
+      { name: "Adesivo Distrito XVII",  qty: "1 un"   },
+    ],
+    method: [
+      "Corte o toucinho em cubos de 4 cm com a pele.",
+      "Cozinhe em água com sal grosso por 20 min. Escorra e seque muito bem.",
+      "Tempere com sal grosso e alho. Deixe secar mais 10 min.",
+      "Frite em óleo quente a 190 °C por 8–10 min até pururucar e dourar.",
+      "Retire, escorra em papel toalha. Embale imediatamente — perde crocância rápido.",
+    ]
+  },
+  8: {
+    portion: "500 ml",
+    ingredients: [
+      { name: "Batata",                 qty: "200 g"  },
+      { name: "Couve manteiga",         qty: "60 g"   },
+      { name: "Linguiça calabresa",     qty: "80 g"   },
+      { name: "Caldo de legumes",       qty: "400 ml" },
+      { name: "Alho",                   qty: "2 dentes"},
+      { name: "Azeite de oliva",        qty: "15 ml"  },
+      { name: "Sal e pimenta",          qty: "a gosto"},
+      { name: "Pote com tampa 500 ml",  qty: "1 un"   },
+      { name: "Colher descartável",     qty: "1 un"   },
+      { name: "Guardanapo + adesivo",   qty: "1 kit"  },
+    ],
+    method: [
+      "Refogue o alho no azeite. Adicione a batata picada e o caldo. Cozinhe 20 min.",
+      "Bata no liquidificador até liso e cremoso. Volte ao fogo.",
+      "Adicione a linguiça fatiada. Cozinhe mais 5 min.",
+      "Corte a couve em chiffonade bem fina. Adicione nos últimos 2 min.",
+      "Ajuste o sal. Finalize com fio de azeite.",
+      "Transfira para o pote. Feche a tampa. Sirva quente.",
+    ]
+  },
+  9: {
+    portion: "500 ml",
+    ingredients: [
+      { name: "Aipim (mandioca)",       qty: "250 g"  },
+      { name: "Carne seca desfiada",    qty: "100 g"  },
+      { name: "Caldo de carne",         qty: "400 ml" },
+      { name: "Cebola",                 qty: "40 g"   },
+      { name: "Alho",                   qty: "2 dentes"},
+      { name: "Azeite de oliva",        qty: "15 ml"  },
+      { name: "Sal",                    qty: "a gosto"},
+      { name: "Pote com tampa 500 ml",  qty: "1 un"   },
+      { name: "Colher descartável",     qty: "1 un"   },
+      { name: "Guardanapo + adesivo",   qty: "1 kit"  },
+    ],
+    method: [
+      "Dessalgue a carne seca: deixe de molho 12 h trocando a água 2–3 vezes. Cozinhe e desfie.",
+      "Cozinhe o aipim em caldo de carne até bem macio. Bata no liquidificador até cremoso.",
+      "Refogue cebola e alho no azeite até dourar.",
+      "Adicione o creme de aipim à panela. Misture bem.",
+      "Junte a carne seca desfiada. Cozinhe mais 5 min. Ajuste o sal.",
+      "Transfira para o pote. Feche a tampa. Sirva quente.",
+    ]
+  },
+  17: {
+    portion: "1 porção",
+    ingredients: [
+      { name: "Batata Cheddar & Bacon (pronta)", qty: "1 cx (500 g)" },
+      { name: "Coca-Cola Lata 350 ml",           qty: "1 un"         },
+    ],
+    method: [
+      "Prepare a Batata Cheddar & Bacon conforme sua ficha técnica.",
+      "Embale a lata de Coca-Cola junto ou em saquinho separado.",
+      "Confira os itens antes de fechar o pedido.",
+    ]
+  },
+  18: {
+    portion: "1 porção",
+    ingredients: [
+      { name: "Frango Crocante (pronto)",    qty: "1 cx (400 g)" },
+      { name: "Batata Clássica (pronta)",    qty: "1 cx (500 g)" },
+      { name: "Molho (2 sachês à escolha)",  qty: "2 un"         },
+    ],
+    method: [
+      "Prepare o Frango Crocante conforme sua ficha técnica.",
+      "Prepare a Batata Clássica conforme sua ficha técnica.",
+      "Inclua 2 molhos à escolha do cliente.",
+      "Confira os itens antes de fechar o pedido.",
+    ]
+  },
+  19: {
+    portion: "2 porções",
+    ingredients: [
+      { name: "Batata XVII Suprema (pronta)", qty: "1 cx (700 g)" },
+      { name: "Frango Crocante (pronto)",     qty: "1 cx (400 g)" },
+      { name: "Refrigerante lata 350 ml",     qty: "2 un"         },
+    ],
+    method: [
+      "Prepare a Batata XVII Suprema conforme sua ficha técnica.",
+      "Prepare o Frango Crocante conforme sua ficha técnica.",
+      "Inclua 2 latas de refrigerante (conforme pedido do cliente).",
+      "Confira os itens antes de fechar o pedido.",
+    ]
+  },
+  20: {
+    portion: "2 porções",
+    ingredients: [
+      { name: "Caldo Verde (pronto)",                qty: "1 pote (500 ml)" },
+      { name: "Caldo de Aipim com Carne Seca (pronto)", qty: "1 pote (500 ml)" },
+      { name: "Torresmo Crocante (pronto)",          qty: "1 cx (350 g)"    },
+    ],
+    method: [
+      "Prepare ambos os caldos conforme suas fichas técnicas.",
+      "Prepare o Torresmo Crocante conforme sua ficha técnica.",
+      "Obs.: caldos e torresmo devem sair juntos — coordene os tempos.",
+      "Confira os itens antes de fechar o pedido.",
+    ]
+  },
+};
+
 let state = loadState();
 
 const viewTitles = {
@@ -131,6 +387,59 @@ function render() {
   renderFinance();
   renderReports();
   renderMarketing();
+}
+
+function renderFichas() {
+  const commission = (state.settings.ifoodCommission || 23) / 100;
+  const items = state.products.filter((p) => recipes[p.id]);
+
+  document.getElementById("fichasGrid").innerHTML = items.map((product) => {
+    const rec = recipes[product.id];
+    const wppProfit = product.price - product.cost;
+    const ifoodProfit = product.price * (1 - commission) - product.cost;
+    return `
+      <article class="ficha-card">
+        <header class="ficha-header">
+          <div>
+            <p class="ficha-eyebrow">${product.category}</p>
+            <h2 class="ficha-name">${product.name}</h2>
+            <p class="ficha-portion">Rendimento: <strong>${rec.portion}</strong></p>
+          </div>
+          <div class="ficha-brand">
+            <img src="assets/distrito-xvii-logo.jpeg" alt="Distrito XVII" />
+          </div>
+        </header>
+
+        <div class="ficha-body">
+          <section class="ficha-section">
+            <h3>Ingredientes</h3>
+            <table class="ficha-table">
+              <thead><tr><th>Ingrediente</th><th>Qtd.</th></tr></thead>
+              <tbody>
+                ${rec.ingredients.map((ing) => `
+                  <tr><td>${ing.name}</td><td>${ing.qty}</td></tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </section>
+
+          <section class="ficha-section">
+            <h3>Modo de Preparo</h3>
+            <ol class="ficha-steps">
+              ${rec.method.map((step) => `<li>${step}</li>`).join("")}
+            </ol>
+          </section>
+        </div>
+
+        <footer class="ficha-footer">
+          <span>Custo: <strong>${currency(product.cost)}</strong></span>
+          <span>Preço: <strong>${currency(product.price)}</strong></span>
+          <span>Lucro WPP: <strong>${currency(wppProfit)}</strong></span>
+          <span>Lucro iFood: <strong>${currency(ifoodProfit)}</strong></span>
+        </footer>
+      </article>
+    `;
+  }).join("");
 }
 
 function renderMetrics() {
@@ -582,6 +891,19 @@ function wireEvents() {
   });
 
   document.getElementById("chartMode").addEventListener("change", renderChart);
+
+  document.querySelectorAll("#prodToggle .segment").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#prodToggle .segment").forEach((s) => s.classList.toggle("active", s === btn));
+      const isFichas = btn.dataset.prodView === "fichas";
+      document.getElementById("productGrid").hidden = isFichas;
+      document.getElementById("fichasGrid").hidden = !isFichas;
+      document.getElementById("printFichas").hidden = !isFichas;
+      if (isFichas) renderFichas();
+    });
+  });
+
+  document.getElementById("printFichas").addEventListener("click", () => window.print());
 
   document.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => openModal(button.dataset.action));
