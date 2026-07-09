@@ -38,7 +38,26 @@ const seedData = {
   campaigns: []
 };
 
-const storeKey = "distrito-os-v4";
+const storeKey = "distrito-os-v5";
+const AUTH_KEY = "distrito-os-auth";
+
+function checkAuth() {
+  return localStorage.getItem(AUTH_KEY) === "ok";
+}
+
+function login(user, pass) {
+  if (user === "admin" && pass === "distrito17") {
+    localStorage.setItem(AUTH_KEY, "ok");
+    return true;
+  }
+  return false;
+}
+
+function logout() {
+  localStorage.removeItem(AUTH_KEY);
+  document.querySelector(".app-shell").hidden = true;
+  document.getElementById("loginScreen").hidden = false;
+}
 
 const recipes = {
   1: {
@@ -760,9 +779,10 @@ function openModal(type) {
       title: "Novo pedido",
       fields: [
         ["client", "Cliente", "text"],
-        ["product", "Produto", "text"],
-        ["total", "Total", "number"],
-        ["channel", "Canal", "select", ["WhatsApp", "iFood", "99Food", "Instagram", "Presencial"]]
+        ["productId", "Produto", "select-products"],
+        ["qty", "Quantidade", "number"],
+        ["channel", "Canal", "select", ["WhatsApp", "iFood", "99Food", "Instagram", "Presencial"]],
+        ["total", "Total (R$)", "number"]
       ],
       submit: "Adicionar pedido"
     },
@@ -805,8 +825,28 @@ function openModal(type) {
     if (inputType === "select") {
       return `<label>${label}<select name="${id}" required>${options.map((o) => `<option value="${o}">${o}</option>`).join("")}</select></label>`;
     }
-    return `<label>${label}<input name="${id}" type="${inputType}" step="0.01" required></label>`;
+    if (inputType === "select-products") {
+      const opts = state.products.map((p) => `<option value="${p.id}" data-price="${p.price}">${p.name} — ${currency(p.price)}</option>`).join("");
+      return `<label>${label}<select name="${id}" id="modalProductSel" required><option value="">Selecione o produto...</option>${opts}</select></label>`;
+    }
+    const defaults = { qty: "1" };
+    return `<label>${label}<input name="${id}" type="${inputType}" step="0.01" value="${defaults[id] || ""}" required></label>`;
   }).join("") + `<button class="primary-button" type="submit">${config.submit}</button>`;
+
+  // Auto-fill total when product or qty changes
+  const prodSel = form.querySelector("#modalProductSel");
+  const totalInput = form.querySelector('[name="total"]');
+  const qtyInput = form.querySelector('[name="qty"]');
+  if (prodSel && totalInput) {
+    function updateTotal() {
+      const opt = prodSel.selectedOptions[0];
+      if (!opt || !opt.dataset.price) return;
+      const qty = Number(qtyInput?.value) || 1;
+      totalInput.value = (Number(opt.dataset.price) * qty).toFixed(2);
+    }
+    prodSel.addEventListener("change", updateTotal);
+    if (qtyInput) qtyInput.addEventListener("input", updateTotal);
+  }
 
   backdrop.hidden = false;
   (form.querySelector("input") || form.querySelector("select")).focus();
@@ -824,16 +864,43 @@ function handleModalSubmit(event) {
 
   if (type === "new-order") {
     const nextId = String(Number(state.orders[0]?.id || "0") + 1).padStart(4, "0");
+    const product = state.products.find((p) => String(p.id) === String(data.productId));
+    const qty = Math.max(1, Number(data.qty) || 1);
+    const total = Number(data.total);
+
     state.orders.unshift({
       id: nextId,
       client: data.client,
-      product: data.product,
+      product: product ? product.name : data.productId,
       status: "Aguardando pagamento",
-      total: Number(data.total),
+      total,
       channel: data.channel,
       time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
     });
-    state.finance.unshift({ date: today(), description: `Pedido #${nextId}`, category: "Vendas", type: "Entrada", value: Number(data.total) });
+
+    // Receita
+    state.finance.unshift({
+      date: today(),
+      description: `Pedido #${nextId} · ${product ? product.name : ""}`,
+      category: "Vendas",
+      type: "Entrada",
+      value: total
+    });
+
+    // ERP: incrementa vendas e registra CMV
+    if (product) {
+      product.sold = (product.sold || 0) + qty;
+      const cmvValue = product.cost * qty;
+      if (cmvValue > 0) {
+        state.finance.unshift({
+          date: today(),
+          description: `CMV · ${product.name} (x${qty})`,
+          category: "CMV",
+          type: "Saída",
+          value: -cmvValue
+        });
+      }
+    }
   }
 
   if (type === "new-product") {
@@ -951,6 +1018,27 @@ function wireEvents() {
     render();
   });
 
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fd = new FormData(loginForm);
+      if (login(fd.get("user"), fd.get("pass"))) {
+        document.getElementById("loginScreen").hidden = true;
+        document.querySelector(".app-shell").hidden = false;
+        const avatar = document.getElementById("userAvatar");
+        if (avatar) avatar.textContent = (fd.get("user") || "A")[0].toUpperCase();
+        render();
+        addMessage("Bem-vindo ao Distrito OS! Boa operação.", "assistant");
+      } else {
+        document.getElementById("loginError").hidden = false;
+      }
+    });
+  }
+
+  const logoutBtn = document.getElementById("logoutButton");
+  if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
   document.getElementById("globalSearch").addEventListener("input", (event) => {
     const term = event.target.value.toLowerCase().trim();
     if (!term) {
@@ -972,5 +1060,12 @@ function wireEvents() {
 }
 
 wireEvents();
-render();
-addMessage("Distrito OS pronto. Você já pode perguntar sobre vendas, estoque, clientes ou produtos.", "assistant");
+
+if (checkAuth()) {
+  document.getElementById("loginScreen").hidden = true;
+  document.querySelector(".app-shell").hidden = false;
+  render();
+  addMessage("Distrito OS pronto. Você já pode perguntar sobre vendas, estoque, clientes ou produtos.", "assistant");
+} else {
+  document.getElementById("loginScreen").hidden = false;
+}
