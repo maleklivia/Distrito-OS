@@ -75,6 +75,7 @@ const Modules = {
   dashboard: {
     async init(state) {
       this._renderKpis(state);
+      this._renderCatalogStats();
       this._renderRecentOrders(state);
       this._renderTopProducts(state);
       this._renderStockAlerts(state);
@@ -127,6 +128,34 @@ const Modules = {
           <strong class="kpi-card__value">${c.value}</strong>
           <small class="kpi-card__sub">${c.sub}</small>
         </article>
+      `).join('');
+    },
+
+    _renderCatalogStats() {
+      const el = document.getElementById('catalog-bar');
+      if (!el) return;
+
+      // Lê dos stores v0.2 se disponíveis, senão esconde
+      if (typeof Stores === 'undefined') { el.style.display = 'none'; return; }
+
+      const produtos     = Stores.produtos.get();
+      const ingredientes = Stores.ingredientes.get();
+      const fichas       = Stores.fichas.get();
+      const ativos       = produtos.filter(p => p.ativo).length;
+
+      const stats = [
+        { label: 'Produtos',    value: produtos.length,     sub: `${ativos} ativos` },
+        { label: 'Ingredientes',value: ingredientes.length,  sub: 'cadastrados' },
+        { label: 'Fichas',      value: fichas.length,        sub: 'técnicas' },
+        { label: 'Categorias',  value: [...new Set(produtos.map(p => p.categoria))].length, sub: 'de produto' },
+      ];
+
+      el.innerHTML = stats.map(s => `
+        <div class="catalog-stat">
+          <span class="catalog-stat__label">${s.label}</span>
+          <span class="catalog-stat__value">${s.value}</span>
+          <span class="catalog-stat__sub">${s.sub}</span>
+        </div>
       `).join('');
     },
 
@@ -212,7 +241,7 @@ const Modules = {
   financeiro:   { async init() {} },
   pedidos:      { async init() {} },
   producao:     { async init() {} },
-  produtos:     { async init() {} },
+  produtos:     { async init() { if (typeof ProdutosModule !== 'undefined') ProdutosModule.init(); } },
   estoque:      { async init() {} },
   compras:      { async init() {} },
   fornecedores: { async init() {} },

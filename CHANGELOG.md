@@ -5,6 +5,30 @@ Formato: [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 ---
 
+## [v0.2.0] — 2026-07-09
+
+### Adicionado
+- **`js/stores.js`** — Store factory separado por domínio: `Stores.produtos`, `Stores.ingredientes`, `Stores.fichas`. Nunca mistura dados com o `storage.js` legado (pedidos, finanças, etc.). Inclui `CATEGORIAS_PRODUTO`, `CATEGORIAS_INGREDIENTE`, `UNIDADES`, `convertUnits()`, `compatibleUnits()`, `calcIngredienteCost()` com seed data completo de 5 produtos + 8 ingredientes + 4 fichas com IDs estáveis (`p-001…`, `i-001…`, `f-001…`)
+- **`css/modules.css`** — Sistema visual para módulos: abas (`.module-tabs`, `.tab-btn`), toolbar (`.module-toolbar`), row actions (`.btn-icon`, `.btn-icon--danger`), status dot, layout ficha técnica (`.ficha-layout`, `.ficha-sidebar`, `.ficha-editor`), tabela de ingredientes inline, barra CMV (`.cmv-bar`), sumário financeiro (`.ficha-summary`), catalog stats (`.catalog-bar`, `.catalog-stat`)
+- **`js/modules/fichas.js`** — `FichasModule`: editor de ficha técnica com auto-save em cada alteração (sem botão Salvar), cálculo em tempo real de CMV, margem e lucro, barra visual de CMV vs meta, `preload()` para uso cross-module, `deleteByProduto()` para cascade delete
+- **`js/modules/ingredientes.js`** — `IngredientesModule`: CRUD completo com busca, filtro por categoria e status, ordenação, destaque de estoque abaixo do mínimo, validação de campos negativos
+- **`js/modules/produtos.js`** — `ProdutosModule`: CRUD completo com duplicar, tabs Cardápio/Ingredientes/Fichas, custo real puxado da ficha técnica, filtro por categoria + status, busca por nome/código
+- **`pages/produtos.html`** — Página completamente reescrita com layout de três abas, toolbar por aba, tabelas completas, ficha editor com sidebar de produtos
+
+### Alterado
+- **`js/utils.js`** — adicionado `escapeHtml()` para prevenção de XSS em toda renderização de dados do usuário
+- **`js/app.js`** — `Modules.produtos` delega para `ProdutosModule.init()`; `Modules.dashboard` ganha `_renderCatalogStats()` lendo dos Stores v0.2
+- **`pages/dashboard.html`** — adiciona `#catalog-bar` (4 KPIs do catálogo: Produtos, Ingredientes, Fichas, Categorias) e carrega `stores.js` + `modules.css`
+
+### Arquitetura
+- Stores separados por domínio com chaves versionadas (`distrito-produtos-v1`, etc.)
+- Conversão de unidades bidirecional (g↔kg, ml↔L) via `convertUnits()`
+- Cascade delete: excluir produto remove a ficha técnica automaticamente
+- IDs estáveis no seed para referências cross-store sem colisão
+- `escapeHtml()` aplicado em todo `innerHTML` que recebe dados do usuário
+
+---
+
 ## [v0.1.0] — 2026-07-09
 
 ### Adicionado

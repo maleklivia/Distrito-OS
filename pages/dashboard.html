@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/sidebar.css">
   <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/modules.css">
 </head>
 <body class="app-body" data-page="dashboard">
   <div class="app-layout">
@@ -26,6 +27,11 @@
       <!-- KPI Row -->
       <div class="kpi-row" id="kpi-row">
         <!-- renderizado por app.js → Modules.dashboard._renderKpis() -->
+      </div>
+
+      <!-- Catalog Stats Bar -->
+      <div class="catalog-bar" id="catalog-bar">
+        <!-- renderizado por app.js → Modules.dashboard._renderCatalogStats() -->
       </div>
 
       <!-- Content Grid -->
@@ -66,6 +72,7 @@
   </div>
 
   <script src="../js/storage.js"></script>
+  <script src="../js/stores.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/ui.js"></script>
