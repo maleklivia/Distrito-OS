@@ -51,8 +51,12 @@ svg {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100vh;
+}
+
+.app-shell[hidden] {
+  display: none;
 }
 
 .sidebar {
@@ -931,6 +935,173 @@ th {
   .assistant-form {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Login Screen ───────────────────────────────────── */
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.16), transparent 56%),
+    linear-gradient(160deg, #070807 0%, #0e1010 50%, #13100d 100%);
+  padding: 20px;
+}
+
+#loginScreen[hidden] {
+  display: none;
+}
+
+.login-card {
+  width: min(420px, 100%);
+  padding: 40px 36px;
+  border: 1px solid rgba(240, 200, 106, 0.2);
+  border-radius: 16px;
+  background: rgba(20, 21, 18, 0.96);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 22px;
+  text-align: center;
+}
+
+.login-logo {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 200, 106, 0.48);
+  box-shadow: 0 0 0 6px rgba(217, 164, 65, 0.08), 0 16px 40px rgba(0, 0, 0, 0.44);
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.login-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-brand strong {
+  display: block;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.login-brand span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+  text-align: left;
+}
+
+.login-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.login-form input {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(10, 11, 9, 0.9);
+  color: var(--text);
+  padding: 0 14px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.login-form input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.16);
+}
+
+.login-error {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: rgba(255, 105, 97, 0.1);
+  border: 1px solid rgba(255, 105, 97, 0.28);
+  color: var(--red);
+  font-size: 0.84rem;
+  text-align: center;
+}
+
+.login-btn {
+  width: 100%;
+  min-height: 48px;
+  font-size: 1rem;
+  margin-top: 4px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+
+.login-footer {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--soft);
+}
+
+/* ── Nav Phase Groups ──────────────────────────────── */
+.nav-phase {
+  padding: 10px 4px 2px;
+  margin-top: 2px;
+}
+
+.phase-label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.nav-item.nav-soon {
+  opacity: 0.58;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(217, 164, 65, 0.12);
+  border: 1px solid rgba(217, 164, 65, 0.26);
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ── Topbar User ──────────────────────────────────── */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-2), var(--gold));
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  flex-shrink: 0;
 }
 
 /* ── Fichas Técnicas ─────────────────────────────────── */
