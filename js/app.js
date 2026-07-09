@@ -35,7 +35,14 @@ const seedData = {
   orders: [],
   finance: [],
   week: [],
-  campaigns: []
+  campaigns: [],
+  fornecedores: [
+    { id: 1, name: "Frigorífico São Jorge",   product: "Bacon, Calabresa",        phone: "(11) 9 9999-0001", price: "R$ 18/kg",   lastBuy: "05/07", notes: "Entrega ter/qui" },
+    { id: 2, name: "Distribuidora Cheddar+",  product: "Cheddar cremoso",         phone: "(11) 9 9999-0002", price: "R$ 22/kg",   lastBuy: "03/07", notes: "Pedir 2 dias antes" },
+    { id: 3, name: "Supra Hortifrutti",       product: "Batata, Aipim, Couve",    phone: "(11) 9 9999-0003", price: "R$ 4/kg",    lastBuy: "07/07", notes: "Pedido na segunda" },
+    { id: 4, name: "Bebidas & Cia",           product: "Refrigerantes, bebidas",  phone: "(11) 9 9999-0004", price: "Tabela",     lastBuy: "01/07", notes: "Mín. 2 caixas" },
+    { id: 5, name: "Embalagem Pro",           product: "Caixas, sacolas, adesivos",phone:"(11) 9 9999-0005", price: "A negociar", lastBuy: "28/06", notes: "A cada 2 semanas" }
+  ]
 };
 
 const storeKey = "distrito-os-v5";
@@ -188,9 +195,9 @@ const recipes = {
     method: [
       "Fatie a calabresa em rodelas de 0,5 cm.",
       "Grelhe na chapa bem quente sem óleo até marcar dos dois lados.",
-      "Na mesma chapa, refogue a cebola fatiada em óleo até caramelizar (dourada).",
+      "Na mesma chapa, refogue a cebola fatiada em óleo até caramelizar.",
       "Misture calabresa e cebola. Ajuste sal e pimenta.",
-      "Embale. Sirva imediatamente — cai temperatura rápido.",
+      "Embale. Sirva imediatamente.",
     ]
   },
   7: {
@@ -209,7 +216,7 @@ const recipes = {
       "Cozinhe em água com sal grosso por 20 min. Escorra e seque muito bem.",
       "Tempere com sal grosso e alho. Deixe secar mais 10 min.",
       "Frite em óleo quente a 190 °C por 8–10 min até pururucar e dourar.",
-      "Retire, escorra em papel toalha. Embale imediatamente — perde crocância rápido.",
+      "Retire, escorra em papel toalha. Embale imediatamente.",
     ]
   },
   8: {
@@ -319,9 +326,11 @@ let state = loadState();
 const viewTitles = {
   dashboard: "Dashboard",
   pedidos: "Pedidos",
+  producao: "Produção",
   clientes: "Clientes",
   produtos: "Produtos",
   estoque: "Estoque",
+  compras: "Compras",
   financeiro: "Financeiro",
   relatorios: "Relatórios",
   marketing: "Marketing",
@@ -331,7 +340,7 @@ const viewTitles = {
 
 const statusClass = {
   "Aguardando pagamento": "muted",
-  "Em produção": "",
+  "Em produção": "orange",
   "Saiu para entrega": "blue",
   "Pedido finalizado": "green",
   VIP: "",
@@ -353,7 +362,10 @@ function loadState() {
   const saved = localStorage.getItem(storeKey);
   if (!saved) return structuredClone(seedData);
   try {
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    if (!parsed.fornecedores) parsed.fornecedores = structuredClone(seedData.fornecedores);
+    if (!parsed.campaigns) parsed.campaigns = [];
+    return parsed;
   } catch {
     return structuredClone(seedData);
   }
@@ -397,7 +409,7 @@ function cmvAverage() {
 }
 
 function render() {
-  renderMetrics();
+  renderKpis();
   renderChart();
   renderProducts();
   renderStock();
@@ -406,8 +418,58 @@ function render() {
   renderFinance();
   renderReports();
   renderMarketing();
+  renderProducao();
+  renderCompras();
 }
 
+// ── Dashboard KPIs ──────────────────────────────────────
+function renderKpis() {
+  const revenue = todayRevenue();
+  const orders = state.orders.length;
+  const ticket = orders > 0 ? revenue / orders : 0;
+  const cmv = cmvAverage();
+  const profit = revenue - revenue * (cmv / 100);
+  const lowStock = state.stock.filter((s) => s.quantity <= s.min).length;
+  const goalPct = Math.round((revenue / state.settings.dailyGoal) * 100);
+
+  const kpis = [
+    { label: "Faturamento", value: currency(revenue), sub: `${goalPct}% da meta`, warn: false },
+    { label: "Lucro estimado", value: currency(profit), sub: `${cmv}% CMV`, warn: false },
+    { label: "Pedidos", value: orders, sub: "total no período", warn: false },
+    { label: "Ticket médio", value: currency(ticket), sub: "por pedido", warn: false },
+    { label: "CMV", value: `${cmv}%`, sub: `meta ${state.settings.cmvGoal}%`, warn: cmv > state.settings.cmvGoal },
+    { label: "Estoque baixo", value: `${lowStock}`, sub: `${lowStock === 1 ? "item precisa" : "itens precisam"} de reposição`, warn: lowStock > 0 }
+  ];
+
+  document.getElementById("kpiRow").innerHTML = kpis.map((k) => `
+    <article class="kpi-card ${k.warn ? "kpi-warn" : ""}">
+      <span class="kpi-label">${k.label}</span>
+      <strong class="kpi-value">${k.value}</strong>
+      <small class="kpi-sub">${k.sub}</small>
+    </article>
+  `).join("");
+
+  // Finance metrics for the Financeiro view
+  const financeMetrics = [
+    { label: "Entradas do mês", value: currency(monthRevenue()), delta: "receita bruta" },
+    { label: "Saídas do mês", value: currency(monthlyCosts()), delta: "custos e despesas" },
+    { label: "Lucro parcial", value: currency(monthRevenue() - monthlyCosts()), delta: "antes de impostos" },
+    { label: "CMV médio", value: `${cmv}%`, delta: `meta: ${state.settings.cmvGoal}%` }
+  ];
+
+  const el = document.getElementById("financeMetrics");
+  if (el) {
+    el.innerHTML = financeMetrics.map((item) => `
+      <article class="metric-card">
+        <span>${item.label}</span>
+        <strong>${item.value}</strong>
+        <small>${item.delta}</small>
+      </article>
+    `).join("");
+  }
+}
+
+// ── Fichas Técnicas ─────────────────────────────────────
 function renderFichas() {
   const commission = (state.settings.ifoodCommission || 23) / 100;
   const items = state.products.filter((p) => recipes[p.id]);
@@ -428,28 +490,19 @@ function renderFichas() {
             <img src="assets/distrito-xvii-logo.jpeg" alt="Distrito XVII" />
           </div>
         </header>
-
         <div class="ficha-body">
           <section class="ficha-section">
             <h3>Ingredientes</h3>
             <table class="ficha-table">
               <thead><tr><th>Ingrediente</th><th>Qtd.</th></tr></thead>
-              <tbody>
-                ${rec.ingredients.map((ing) => `
-                  <tr><td>${ing.name}</td><td>${ing.qty}</td></tr>
-                `).join("")}
-              </tbody>
+              <tbody>${rec.ingredients.map((ing) => `<tr><td>${ing.name}</td><td>${ing.qty}</td></tr>`).join("")}</tbody>
             </table>
           </section>
-
           <section class="ficha-section">
             <h3>Modo de Preparo</h3>
-            <ol class="ficha-steps">
-              ${rec.method.map((step) => `<li>${step}</li>`).join("")}
-            </ol>
+            <ol class="ficha-steps">${rec.method.map((step) => `<li>${step}</li>`).join("")}</ol>
           </section>
         </div>
-
         <footer class="ficha-footer">
           <span>Custo: <strong>${currency(product.cost)}</strong></span>
           <span>Preço: <strong>${currency(product.price)}</strong></span>
@@ -461,66 +514,15 @@ function renderFichas() {
   }).join("");
 }
 
-function renderMetrics() {
-  const revenue = todayRevenue();
-  document.getElementById("heroRevenue").textContent = currency(revenue);
-  document.getElementById("heroDelta").textContent = `${Math.round((revenue / state.settings.dailyGoal) * 100)}% da meta diária`;
-
-  const metrics = [
-    { label: "Faturamento hoje", value: currency(revenue), delta: "+12% vs. ontem", trend: "up" },
-    { label: "Pedidos hoje", value: state.orders.length, delta: "18 min tempo médio", trend: "up" },
-    { label: "Lucro estimado", value: currency(revenue - revenue * (cmvAverage() / 100)), delta: `${cmvAverage()}% CMV`, trend: "up" },
-    { label: "Ticket médio", value: currency(revenue / Math.max(state.orders.length, 1)), delta: "+R$ 4,20 na semana", trend: "up" },
-    { label: "Nota operacional", value: "4,9", delta: "zero cancelamentos", trend: "up" }
-  ];
-
-  document.getElementById("metricGrid").innerHTML = metrics.map((item) => `
-    <article class="metric-card">
-      <span>${item.label}</span>
-      <strong>${item.value}</strong>
-      <small class="${item.trend}">${item.delta}</small>
-    </article>
-  `).join("");
-
-  const financeMetrics = [
-    { label: "Entradas do mês", value: currency(monthRevenue()), delta: "inclui WhatsApp e iFood" },
-    { label: "Saídas do mês", value: currency(monthlyCosts()), delta: "insumos e operação" },
-    { label: "Lucro parcial", value: currency(monthRevenue() - monthlyCosts()), delta: "antes de impostos" },
-    { label: "CMV médio", value: `${cmvAverage()}%`, delta: `meta: ${state.settings.cmvGoal}%` }
-  ];
-
-  document.getElementById("financeMetrics").innerHTML = financeMetrics.map((item) => `
-    <article class="metric-card">
-      <span>${item.label}</span>
-      <strong>${item.value}</strong>
-      <small>${item.delta}</small>
-    </article>
-  `).join("");
-}
-
-function renderChart() {
-  const mode = document.getElementById("chartMode").value;
-  if (!state.week.length) {
-    document.getElementById("salesChart").innerHTML = `<div class="empty-hint">Nenhum dado de vendas ainda.</div>`;
-    return;
-  }
-  const max = Math.max(...state.week.map((item) => item[mode]));
-  document.getElementById("salesChart").innerHTML = state.week.map((item) => {
-    const value = item[mode];
-    const height = Math.max(18, Math.round((value / max) * 220));
-    const label = mode === "revenue" ? currency(value).replace(",00", "") : value;
-    return `<div class="bar" style="height:${height}px"><strong>${label}</strong><span>${item.day}</span></div>`;
-  }).join("");
-}
-
+// ── Products / Top sellers ──────────────────────────────
 function renderProducts() {
   const sorted = [...state.products].sort((a, b) => b.sold - a.sold);
   document.getElementById("topProducts").innerHTML = sorted.slice(0, 5).map((item, index) => `
     <div class="rank-item">
       <span>${index + 1}. ${item.name}</span>
-      <strong>${item.sold}</strong>
+      <strong>${item.sold} vendas</strong>
     </div>
-  `).join("");
+  `).join("") || `<div class="empty-hint">Nenhuma venda registrada.</div>`;
 
   const commission = (state.settings.ifoodCommission || 23) / 100;
   document.getElementById("productGrid").innerHTML = state.products.map((item) => {
@@ -530,20 +532,18 @@ function renderProducts() {
           <span>${item.category}</span>
           <strong>${item.name}</strong>
           <div>Preço: ${currency(item.price)}</div>
-          <div>Custo: — preencher</div>
           <span class="pill muted">Custo pendente</span>
         </article>
       `;
     }
     const wppProfit = item.price - item.cost;
     const wppMargin = Math.round((wppProfit / item.price) * 100);
-    const netAfterIfood = item.price * (1 - commission);
-    const ifoodProfit = netAfterIfood - item.cost;
+    const ifoodProfit = item.price * (1 - commission) - item.cost;
     return `
       <article class="product-card">
         <span>${item.category}</span>
         <strong>${item.name}</strong>
-        <div>Preço: ${currency(item.price)} · Custo: ${currency(item.cost)}</div>
+        <div style="color:var(--muted);font-size:0.78rem">Preço ${currency(item.price)} · Custo ${currency(item.cost)}</div>
         <div class="product-margins">
           <span class="pill ${wppMargin >= 40 ? "green" : "red"}">WPP ${currency(wppProfit)}</span>
           <span class="pill ${ifoodProfit >= 8 ? "green" : "red"}">iFood ${currency(ifoodProfit)}</span>
@@ -553,129 +553,278 @@ function renderProducts() {
   }).join("");
 }
 
+// ── Stock ───────────────────────────────────────────────
 function renderStock() {
   const alerts = state.stock.filter((item) => item.quantity <= item.min);
   const alertsEl = document.getElementById("stockAlerts");
-  alertsEl.innerHTML = alerts.length
-    ? alerts.map((item) => `
-      <div class="alert-item">
-        <span>${item.item}</span>
-        <strong class="pill red">${item.quantity} ${item.unit}</strong>
-      </div>
-    `).join("")
-    : `<div class="alert-item"><span>Nenhum item crítico</span><strong class="pill green">OK</strong></div>`;
+  if (alertsEl) {
+    alertsEl.innerHTML = alerts.length
+      ? alerts.map((item) => `
+        <div class="alert-item">
+          <div>
+            <strong style="display:block;font-size:0.88rem">⚠ ${item.item.toUpperCase()}</strong>
+            <small style="color:var(--muted)">${item.quantity} ${item.unit} restantes · repor urgente</small>
+          </div>
+          <span class="pill red">Crítico</span>
+        </div>
+      `).join("")
+      : `<div class="rank-item"><span>Todos os itens OK</span><span class="pill green">OK</span></div>`;
+  }
 
-  document.getElementById("stockGrid").innerHTML = state.stock.map((item) => {
-    const percent = Math.min(100, Math.round((item.quantity / item.capacity) * 100));
-    const risk = item.quantity <= item.min ? "danger" : percent < 45 ? "warning" : "";
+  const stockGridEl = document.getElementById("stockGrid");
+  if (stockGridEl) {
+    stockGridEl.innerHTML = state.stock.map((item) => {
+      const percent = Math.min(100, Math.round((item.quantity / item.capacity) * 100));
+      const risk = item.quantity <= item.min ? "danger" : percent < 45 ? "warning" : "";
+      return `
+        <article class="stock-card">
+          <span>${item.unit}</span>
+          <strong>${item.item}</strong>
+          <div style="color:var(--muted);font-size:0.78rem">${item.quantity} ${item.unit} disponíveis</div>
+          <div class="progress ${risk}" style="--value:${percent}%"><i></i></div>
+          <small style="color:var(--muted)">Mínimo: ${item.min} ${item.unit}</small>
+        </article>
+      `;
+    }).join("") || `<div class="empty-hint">Nenhum item no estoque. Registre uma compra.</div>`;
+  }
+}
+
+// ── Orders ──────────────────────────────────────────────
+function renderOrders() {
+  const recentEl = document.getElementById("recentOrders");
+  if (recentEl) {
+    recentEl.innerHTML = state.orders.slice(0, 10).map((item) => `
+      <tr>
+        <td style="font-weight:700">#${item.id}</td>
+        <td>${item.client}</td>
+        <td>${item.product}</td>
+        <td><span class="pill ${channelClass[item.channel] || ""}">${item.channel}</span></td>
+        <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
+        <td style="font-weight:700">${currency(item.total)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum pedido ainda. Clique em + Novo pedido.</td></tr>`;
+  }
+
+  const columns = ["Aguardando pagamento", "Em produção", "Saiu para entrega", "Pedido finalizado"];
+  const boardEl = document.getElementById("orderBoard");
+  if (boardEl) {
+    boardEl.innerHTML = columns.map((status) => {
+      const orders = state.orders.filter((item) => item.status === status);
+      return `
+        <section class="kanban-column">
+          <h4>${status} <span style="opacity:.6">(${orders.length})</span></h4>
+          ${orders.map((item) => `
+            <article class="order-card">
+              <strong>#${item.id} · ${item.client}</strong>
+              <span style="color:var(--muted)">${item.product}</span>
+              <footer>
+                <span class="pill ${channelClass[item.channel] || ""}">${item.channel}</span>
+                <span style="font-weight:700">${currency(item.total)}</span>
+              </footer>
+            </article>
+          `).join("") || `<small style="color:var(--muted)">Vazio</small>`}
+        </section>
+      `;
+    }).join("");
+  }
+}
+
+// ── Produção (Kitchen Display) ──────────────────────────
+function renderProducao() {
+  const aguardando = state.orders.filter((o) => o.status === "Aguardando pagamento");
+  const emProducao = state.orders.filter((o) => o.status === "Em produção");
+  const finalizados = state.orders.filter((o) => o.status === "Pedido finalizado").length;
+
+  const barEl = document.getElementById("kitchenBar");
+  if (barEl) {
+    barEl.innerHTML = [
+      { label: "Aguardando", value: aguardando.length, style: "color:var(--text)" },
+      { label: "Em produção", value: emProducao.length, style: "color:var(--gold-2)" },
+      { label: "Finalizados hoje", value: finalizados, style: "color:var(--green)" }
+    ].map((s) => `
+      <div class="kitchen-stat">
+        <strong style="${s.style}">${s.value}</strong>
+        <span>${s.label}</span>
+      </div>
+    `).join("");
+  }
+
+  const boardEl = document.getElementById("kitchenBoard");
+  if (!boardEl) return;
+
+  const active = [...aguardando, ...emProducao];
+  if (!active.length) {
+    boardEl.innerHTML = `<div class="empty-hint">Nenhum pedido ativo no momento.</div>`;
+    return;
+  }
+
+  boardEl.innerHTML = active.map((order) => {
+    const product = state.products.find((p) => p.name === order.product);
+    const rec = product ? recipes[product.id] : null;
+    const isWaiting = order.status === "Aguardando pagamento";
     return `
-      <article class="stock-card">
-        <span>${item.unit} em estoque</span>
-        <strong>${item.item}</strong>
-        <div>${item.quantity} ${item.unit} disponíveis</div>
-        <div class="progress ${risk}" style="--value:${percent}%"><i></i></div>
-        <small>Mínimo recomendado: ${item.min} ${item.unit}</small>
+      <article class="kitchen-card">
+        <div class="kitchen-card-header">
+          <strong>#${order.id}</strong>
+          <span>${order.time || "--:--"}</span>
+          <span class="pill ${channelClass[order.channel] || ""}">${order.channel}</span>
+          <span class="pill ${isWaiting ? "muted" : "orange"}">${isWaiting ? "Aguardando" : "Produzindo"}</span>
+        </div>
+        <div class="kitchen-card-body">
+          <span>${order.client}</span>
+          <h4>${order.product}</h4>
+          ${rec ? `
+            <div class="kitchen-ingredients">
+              ${rec.ingredients.map((ing) => `<span>− ${ing.qty} &nbsp; ${ing.name}</span>`).join("")}
+            </div>
+          ` : ""}
+        </div>
+        <div class="kitchen-card-actions">
+          <button class="primary-button" onclick="advanceOrder('${order.id}')">
+            ${isWaiting ? "Iniciar produção →" : "Saiu para entrega →"}
+          </button>
+        </div>
       </article>
     `;
   }).join("");
 }
 
-function renderOrders() {
-  document.getElementById("recentOrders").innerHTML = state.orders.slice(0, 5).map((item) => `
-    <tr>
-      <td>#${item.id}</td>
-      <td>${item.client}</td>
-      <td>${item.product}</td>
-      <td><span class="pill ${channelClass[item.channel] || ""}">${item.channel}</span></td>
-      <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
-      <td>${currency(item.total)}</td>
-    </tr>
-  `).join("");
-
-  const columns = ["Aguardando pagamento", "Em produção", "Saiu para entrega", "Pedido finalizado"];
-  document.getElementById("orderBoard").innerHTML = columns.map((status) => {
-    const orders = state.orders.filter((item) => item.status === status);
-    return `
-      <section class="kanban-column">
-        <h4>${status}</h4>
-        ${orders.map((item) => `
-          <article class="order-card">
-            <strong>#${item.id} - ${item.client}</strong>
-            <span>${item.product}</span>
-            <footer><span>${item.channel}</span><span>${currency(item.total)}</span></footer>
-          </article>
-        `).join("") || `<small>Sem pedidos nesta etapa</small>`}
-      </section>
-    `;
-  }).join("");
+function advanceOrder(orderId) {
+  const order = state.orders.find((o) => o.id === orderId);
+  if (!order) return;
+  const flow = ["Aguardando pagamento", "Em produção", "Saiu para entrega", "Pedido finalizado"];
+  const next = flow.indexOf(order.status) + 1;
+  if (next < flow.length) order.status = flow[next];
+  saveState();
+  render();
 }
 
+// ── Compras ─────────────────────────────────────────────
+function renderCompras() {
+  const lowStock = state.stock.filter((s) => s.quantity <= s.min);
+  const listEl = document.getElementById("shoppingList");
+  if (listEl) {
+    listEl.innerHTML = lowStock.length
+      ? lowStock.map((item) => `
+        <div class="shop-item" id="shopitem_${item.item.replace(/\s/g, "_")}">
+          <input type="checkbox" id="check_${item.item.replace(/\s/g, "_")}"
+            onchange="toggleShopItem('${item.item.replace(/\s/g, "_")}')">
+          <div class="shop-item-info">
+            <strong>${item.item}</strong>
+            <small>${item.quantity} ${item.unit} restantes · mín ${item.min} ${item.unit}</small>
+          </div>
+          <span class="pill red">Repor</span>
+        </div>
+      `).join("")
+      : `<div class="rank-item"><span>Estoque dentro do normal</span><span class="pill green">Tudo OK</span></div>`;
+  }
+
+  const suppliers = state.fornecedores || [];
+  const tableEl = document.getElementById("suppliersTable");
+  if (tableEl) {
+    tableEl.innerHTML = suppliers.map((f) => `
+      <tr>
+        <td>
+          <strong style="display:block">${f.name}</strong>
+          <small style="color:var(--muted)">${f.notes || ""}</small>
+        </td>
+        <td>${f.product}</td>
+        <td>${f.phone}</td>
+        <td style="font-weight:700">${f.price}</td>
+        <td style="color:var(--muted)">${f.lastBuy}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">Nenhum fornecedor cadastrado.</td></tr>`;
+  }
+}
+
+function toggleShopItem(safeId) {
+  const el = document.getElementById(`shopitem_${safeId}`);
+  if (el) el.classList.toggle("checked");
+}
+
+// ── Clients ─────────────────────────────────────────────
 function renderClients(filter = "all") {
   const clients = filter === "all" ? state.clients : state.clients.filter((item) => item.status === filter);
-  document.getElementById("clientsTable").innerHTML = clients.map((item) => `
-    <tr>
-      <td>${item.name}<br><small>${item.last}</small></td>
-      <td>${item.phone}</td>
-      <td>${item.orders}</td>
-      <td>${currency(item.average)}</td>
-      <td>${currency(item.total)}</td>
-      <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
-    </tr>
-  `).join("");
+  const tableEl = document.getElementById("clientsTable");
+  if (tableEl) {
+    tableEl.innerHTML = clients.map((item) => `
+      <tr>
+        <td><strong>${item.name}</strong><br><small style="color:var(--muted)">${item.last}</small></td>
+        <td>${item.phone}</td>
+        <td style="font-weight:700">${item.orders}</td>
+        <td>${currency(item.average)}</td>
+        <td style="font-weight:700">${currency(item.total)}</td>
+        <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
+      </tr>
+    `).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Nenhum cliente cadastrado ainda.</td></tr>`;
+  }
 }
 
+// ── Finance ─────────────────────────────────────────────
 function renderFinance() {
-  document.getElementById("financeTable").innerHTML = state.finance.map((item) => `
-    <tr>
-      <td>${item.date}</td>
-      <td>${item.description}</td>
-      <td>${item.category}</td>
-      <td><span class="pill ${statusClass[item.type]}">${item.type}</span></td>
-      <td>${currency(item.value)}</td>
-    </tr>
-  `).join("");
+  const tableEl = document.getElementById("financeTable");
+  if (tableEl) {
+    tableEl.innerHTML = state.finance.map((item) => `
+      <tr>
+        <td style="color:var(--muted)">${item.date}</td>
+        <td>${item.description}</td>
+        <td style="color:var(--muted)">${item.category}</td>
+        <td><span class="pill ${statusClass[item.type]}">${item.type}</span></td>
+        <td style="font-weight:700">${currency(item.value)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px">Nenhum lançamento ainda.</td></tr>`;
+  }
 
   const revenue = monthRevenue();
   const costs = monthlyCosts();
-  const dre = [
-    ["Receita bruta", revenue],
-    ["Custos e despesas", -costs],
-    ["Resultado parcial", revenue - costs],
-    ["Margem líquida", revenue > 0 ? `${Math.round(((revenue - costs) / revenue) * 100)}%` : "—"]
-  ];
-  document.getElementById("dreList").innerHTML = dre.map(([label, value]) => `
-    <div class="dre-item">
-      <span>${label}</span>
-      <strong>${typeof value === "number" ? currency(value) : value}</strong>
-    </div>
-  `).join("");
+  const dreEl = document.getElementById("dreList");
+  if (dreEl) {
+    const dre = [
+      ["Receita bruta", revenue],
+      ["Custos e despesas", -costs],
+      ["Resultado parcial", revenue - costs],
+      ["Margem líquida", revenue > 0 ? `${Math.round(((revenue - costs) / revenue) * 100)}%` : "—"]
+    ];
+    dreEl.innerHTML = dre.map(([label, value]) => `
+      <div class="dre-item">
+        <span>${label}</span>
+        <strong>${typeof value === "number" ? currency(value) : value}</strong>
+      </div>
+    `).join("");
+  }
 }
 
+// ── Reports ─────────────────────────────────────────────
 function renderReports() {
   const topClient = [...state.clients].sort((a, b) => b.total - a.total)[0];
   const topProduct = [...state.products].sort((a, b) => b.sold - a.sold)[0];
+  const lowProduct = [...state.products].filter((p) => p.sold === 0)[0];
   const lowStock = state.stock.filter((item) => item.quantity <= item.min).length;
+  const revenue = monthRevenue();
+  const costs = monthlyCosts();
 
-  if (!topClient && !topProduct) {
-    document.getElementById("reportsGrid").innerHTML = `<div class="empty-hint">Cadastre produtos e clientes para ver os relatórios.</div>`;
-    return;
-  }
+  const el = document.getElementById("reportsGrid");
+  if (!el) return;
 
   const reports = [
-    topClient && { title: "Melhor cliente", value: topClient.name, detail: `${currency(topClient.total)} acumulados` },
     topProduct && { title: "Produto líder", value: topProduct.name, detail: `${topProduct.sold} vendas no período` },
-    { title: "Estoque crítico", value: `${lowStock} item(ns)`, detail: "priorizar próxima compra" }
+    lowProduct && { title: "Produto parado", value: lowProduct.name, detail: "0 vendas — promover ou revisar" },
+    topClient && { title: "Melhor cliente", value: topClient.name, detail: `${currency(topClient.total)} acumulados` },
+    { title: "Estoque crítico", value: `${lowStock} item(ns)`, detail: "priorizar próxima compra" },
+    revenue > 0 && { title: "Margem do mês", value: revenue > 0 ? `${Math.round(((revenue - costs) / revenue) * 100)}%` : "—", detail: `receita ${currency(revenue)} · custo ${currency(costs)}` },
+    { title: "CMV atual", value: `${cmvAverage()}%`, detail: `meta máxima ${state.settings.cmvGoal}%` }
   ].filter(Boolean);
 
-  document.getElementById("reportsGrid").innerHTML = reports.map((item) => `
+  el.innerHTML = reports.map((item) => `
     <article class="report-card">
-      <span>${item.title}</span>
+      <span style="color:var(--muted);font-size:0.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">${item.title}</span>
       <strong>${item.value}</strong>
-      <small>${item.detail}</small>
+      <small style="color:var(--muted)">${item.detail}</small>
     </article>
   `).join("");
 }
 
+// ── Marketing ───────────────────────────────────────────
 function renderMarketing() {
   const campaigns = state.campaigns || [];
   const totalReach = campaigns.reduce((sum, c) => sum + c.reach, 0);
@@ -683,37 +832,40 @@ function renderMarketing() {
   const totalBudget = campaigns.reduce((sum, c) => sum + c.budget, 0);
   const conversion = totalReach > 0 ? ((totalLeads / totalReach) * 100).toFixed(1) : "0.0";
 
-  const metrics = [
-    { label: "Alcance total", value: totalReach.toLocaleString("pt-BR"), delta: "todas as campanhas" },
-    { label: "Leads gerados", value: totalLeads, delta: "contatos qualificados" },
-    { label: "Taxa de conversão", value: `${conversion}%`, delta: "leads / alcance" },
-    { label: "Investimento", value: currency(totalBudget), delta: "campanhas pagas" }
-  ];
+  const metricsEl = document.getElementById("marketingMetrics");
+  if (metricsEl) {
+    metricsEl.innerHTML = [
+      { label: "Alcance total", value: totalReach.toLocaleString("pt-BR"), delta: "todas as campanhas" },
+      { label: "Leads gerados", value: totalLeads, delta: "contatos qualificados" },
+      { label: "Conversão", value: `${conversion}%`, delta: "leads / alcance" },
+      { label: "Investimento", value: currency(totalBudget), delta: "campanhas pagas" }
+    ].map((item) => `
+      <article class="metric-card">
+        <span>${item.label}</span>
+        <strong>${item.value}</strong>
+        <small>${item.delta}</small>
+      </article>
+    `).join("");
+  }
 
-  document.getElementById("marketingMetrics").innerHTML = metrics.map((item) => `
-    <article class="metric-card">
-      <span>${item.label}</span>
-      <strong>${item.value}</strong>
-      <small>${item.delta}</small>
-    </article>
-  `).join("");
-
-  const campaignStatusClass = { Ativo: "green", Encerrado: "muted", Pausado: "" };
-
-  document.getElementById("campaignsTable").innerHTML = campaigns.map((item) => {
-    const conv = item.reach > 0 ? ((item.leads / item.reach) * 100).toFixed(1) : "0.0";
-    return `
-      <tr>
-        <td>${item.name}</td>
-        <td>${item.channel}</td>
-        <td><span class="pill ${campaignStatusClass[item.status] || ""}">${item.status}</span></td>
-        <td>${item.reach.toLocaleString("pt-BR")}</td>
-        <td>${item.leads}</td>
-        <td>${conv}%</td>
-        <td>${item.budget > 0 ? currency(item.budget) : "—"}</td>
-      </tr>
-    `;
-  }).join("");
+  const campaignStatusClass = { Ativo: "green", Encerrado: "muted", Pausado: "orange" };
+  const tableEl = document.getElementById("campaignsTable");
+  if (tableEl) {
+    tableEl.innerHTML = campaigns.map((item) => {
+      const conv = item.reach > 0 ? ((item.leads / item.reach) * 100).toFixed(1) : "0.0";
+      return `
+        <tr>
+          <td><strong>${item.name}</strong></td>
+          <td>${item.channel}</td>
+          <td><span class="pill ${campaignStatusClass[item.status] || ""}">${item.status}</span></td>
+          <td>${item.reach.toLocaleString("pt-BR")}</td>
+          <td>${item.leads}</td>
+          <td>${conv}%</td>
+          <td>${item.budget > 0 ? currency(item.budget) : "—"}</td>
+        </tr>
+      `;
+    }).join("") || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Nenhuma campanha.</td></tr>`;
+  }
 
   const channelMap = {};
   campaigns.forEach((c) => {
@@ -721,39 +873,60 @@ function renderMarketing() {
     channelMap[c.channel].leads += c.leads;
     channelMap[c.channel].reach += c.reach;
   });
-  const channels = Object.entries(channelMap).sort((a, b) => b[1].leads - a[1].leads);
 
-  document.getElementById("channelRank").innerHTML = channels.map(([channel, data]) => `
-    <div class="rank-item">
-      <span>${channel}</span>
-      <strong>${data.leads} leads</strong>
-    </div>
-  `).join("");
+  const channelEl = document.getElementById("channelRank");
+  if (channelEl) {
+    const channels = Object.entries(channelMap).sort((a, b) => b[1].leads - a[1].leads);
+    channelEl.innerHTML = channels.map(([channel, data]) => `
+      <div class="rank-item"><span>${channel}</span><strong>${data.leads} leads</strong></div>
+    `).join("") || `<div class="empty-hint">Sem dados de canal.</div>`;
+  }
 }
 
-function askAssistant(prompt) {
-  const question = prompt.toLowerCase();
-  let answer = "Ainda estou na versão demonstrativa. Posso responder sobre vendas, estoque, clientes VIP e produtos mais vendidos.";
+// ── Chart ───────────────────────────────────────────────
+function renderChart() {
+  const mode = document.getElementById("chartMode")?.value || "revenue";
+  const chartEl = document.getElementById("salesChart");
+  if (!chartEl) return;
+  if (!state.week.length) {
+    chartEl.innerHTML = `<div class="empty-hint">Sem dados semanais.</div>`;
+    return;
+  }
+  const max = Math.max(...state.week.map((item) => item[mode]));
+  chartEl.innerHTML = state.week.map((item) => {
+    const value = item[mode];
+    const height = Math.max(8, Math.round((value / max) * (chartEl.classList.contains("compact") ? 80 : 180)));
+    const label = mode === "revenue" ? currency(value).replace(",00", "") : value;
+    return `<div class="bar" style="height:${height}px"><strong>${label}</strong><span>${item.day}</span></div>`;
+  }).join("");
+}
 
-  if (question.includes("vendi") || question.includes("fatur")) {
-    answer = `Hoje o faturamento registrado é ${currency(todayRevenue())}, com ${state.orders.length} pedidos no painel.`;
-  } else if (question.includes("bacon")) {
-    const bacon = state.stock.find((item) => item.item.toLowerCase() === "bacon");
+// ── Assistant ───────────────────────────────────────────
+function askAssistant(prompt) {
+  const q = prompt.toLowerCase();
+  let answer = "Ainda estou em modo demonstrativo. Posso responder sobre vendas, estoque, clientes VIP e produtos.";
+
+  if (q.includes("vendi") || q.includes("fatur")) {
+    answer = `Hoje o faturamento registrado é ${currency(todayRevenue())}, com ${state.orders.length} pedidos.`;
+  } else if (q.includes("bacon")) {
+    const bacon = state.stock.find((item) => item.item.toLowerCase().includes("bacon"));
     answer = bacon
-      ? `Você tem ${bacon.quantity} ${bacon.unit} de bacon. O mínimo configurado é ${bacon.min} ${bacon.unit}.`
-      : "Bacon não encontrado no estoque.";
-  } else if (question.includes("vip") || question.includes("cliente")) {
+      ? `Você tem ${bacon.quantity} ${bacon.unit} de bacon. Mínimo configurado: ${bacon.min} ${bacon.unit}.`
+      : "Bacon não encontrado no estoque. Cadastre via Estoque → Registrar compra.";
+  } else if (q.includes("vip") || q.includes("cliente")) {
     const client = [...state.clients].sort((a, b) => b.total - a.total)[0];
     answer = client
-      ? `${client.name} é o cliente de maior valor, com ${client.orders} pedidos e ${currency(client.total)} gastos.`
+      ? `${client.name} é o cliente de maior valor: ${client.orders} pedidos e ${currency(client.total)} gastos.`
       : "Nenhum cliente cadastrado ainda.";
-  } else if (question.includes("produto") || question.includes("vende")) {
+  } else if (q.includes("produto") || q.includes("vende")) {
     const product = [...state.products].sort((a, b) => b.sold - a.sold)[0];
     answer = product
-      ? `${product.name} lidera o período, com ${product.sold} vendas.`
-      : "Nenhum produto cadastrado ainda.";
-  } else if (question.includes("lucro")) {
-    answer = `O lucro parcial estimado é ${currency(monthRevenue() - monthlyCosts())}, antes de impostos e taxas adicionais.`;
+      ? `${product.name} lidera com ${product.sold} vendas.`
+      : "Nenhuma venda registrada ainda.";
+  } else if (q.includes("lucro")) {
+    answer = `Lucro parcial estimado: ${currency(monthRevenue() - monthlyCosts())} (antes de impostos).`;
+  } else if (q.includes("cmv")) {
+    answer = `CMV atual: ${cmvAverage()}%. Meta máxima: ${state.settings.cmvGoal}%. ${cmvAverage() > state.settings.cmvGoal ? "Acima da meta — revisar custos." : "Dentro da meta."}`;
   }
 
   addMessage(prompt, "user");
@@ -762,13 +935,14 @@ function askAssistant(prompt) {
 
 function addMessage(text, who) {
   const log = document.getElementById("assistantLog");
-  const message = document.createElement("div");
-  message.className = `message ${who === "user" ? "user" : ""}`;
-  message.textContent = text;
-  log.appendChild(message);
+  const msg = document.createElement("div");
+  msg.className = `message ${who === "user" ? "user" : ""}`;
+  msg.textContent = text;
+  log.appendChild(msg);
   log.scrollTop = log.scrollHeight;
 }
 
+// ── Modal ───────────────────────────────────────────────
 function openModal(type) {
   const backdrop = document.getElementById("modalBackdrop");
   const form = document.getElementById("modalForm");
@@ -782,27 +956,27 @@ function openModal(type) {
         ["productId", "Produto", "select-products"],
         ["qty", "Quantidade", "number"],
         ["channel", "Canal", "select", ["WhatsApp", "iFood", "99Food", "Instagram", "Presencial"]],
-        ["total", "Total (R$)", "number"]
+        ["total", "Total (R$) — auto-preenchido", "number"]
       ],
-      submit: "Adicionar pedido"
+      submit: "Registrar pedido"
     },
     "new-product": {
       title: "Novo produto",
       fields: [
         ["name", "Nome", "text"],
-        ["price", "Preço", "number"],
-        ["cost", "Custo", "number"],
+        ["price", "Preço de venda", "number"],
+        ["cost", "Custo de produção", "number"],
         ["category", "Categoria", "text"]
       ],
       submit: "Adicionar produto"
     },
     "new-stock": {
-      title: "Registrar compra",
+      title: "Registrar compra de insumo",
       fields: [
         ["item", "Item", "text"],
         ["quantity", "Quantidade", "number"],
-        ["unit", "Unidade", "text"],
-        ["cost", "Custo unitário", "number"]
+        ["unit", "Unidade (kg, l, un)", "text"],
+        ["cost", "Custo unitário (R$)", "number"]
       ],
       submit: "Registrar"
     },
@@ -810,17 +984,40 @@ function openModal(type) {
       title: "Nova campanha",
       fields: [
         ["name", "Nome da campanha", "text"],
-        ["channel", "Canal", "select", ["Instagram", "WhatsApp", "Meta Ads", "iFood", "99Food", "TikTok"]],
+        ["channel", "Canal", "select", ["Instagram", "WhatsApp", "Meta Ads", "iFood", "TikTok"]],
         ["reach", "Alcance estimado", "number"],
         ["budget", "Investimento (R$)", "number"]
       ],
       submit: "Criar campanha"
+    },
+    "new-supplier": {
+      title: "Novo fornecedor",
+      fields: [
+        ["name", "Nome do fornecedor", "text"],
+        ["product", "Produto fornecido", "text"],
+        ["phone", "Telefone / WhatsApp", "text"],
+        ["price", "Preço de referência", "text"],
+        ["notes", "Observações", "text"]
+      ],
+      submit: "Adicionar fornecedor"
+    },
+    "new-finance": {
+      title: "Lançamento manual",
+      fields: [
+        ["description", "Descrição", "text"],
+        ["category", "Categoria", "text"],
+        ["type", "Tipo", "select", ["Entrada", "Saída"]],
+        ["value", "Valor (R$)", "number"]
+      ],
+      submit: "Lançar"
     }
   };
 
   const config = templates[type];
+  if (!config) return;
   title.textContent = config.title;
   form.dataset.type = type;
+
   form.innerHTML = config.fields.map(([id, label, inputType, options]) => {
     if (inputType === "select") {
       return `<label>${label}<select name="${id}" required>${options.map((o) => `<option value="${o}">${o}</option>`).join("")}</select></label>`;
@@ -830,10 +1027,10 @@ function openModal(type) {
       return `<label>${label}<select name="${id}" id="modalProductSel" required><option value="">Selecione o produto...</option>${opts}</select></label>`;
     }
     const defaults = { qty: "1" };
-    return `<label>${label}<input name="${id}" type="${inputType}" step="0.01" value="${defaults[id] || ""}" required></label>`;
-  }).join("") + `<button class="primary-button" type="submit">${config.submit}</button>`;
+    return `<label>${label}<input name="${id}" type="${inputType}" step="0.01" value="${defaults[id] || ""}" ${inputType !== "text" ? "" : ""} required></label>`;
+  }).join("") + `<button class="primary-button" type="submit" style="width:100%;min-height:44px;font-size:0.92rem">${config.submit}</button>`;
 
-  // Auto-fill total when product or qty changes
+  // Auto-fill total from product × qty
   const prodSel = form.querySelector("#modalProductSel");
   const totalInput = form.querySelector('[name="total"]');
   const qtyInput = form.querySelector('[name="qty"]');
@@ -841,15 +1038,14 @@ function openModal(type) {
     function updateTotal() {
       const opt = prodSel.selectedOptions[0];
       if (!opt || !opt.dataset.price) return;
-      const qty = Number(qtyInput?.value) || 1;
-      totalInput.value = (Number(opt.dataset.price) * qty).toFixed(2);
+      totalInput.value = (Number(opt.dataset.price) * (Number(qtyInput?.value) || 1)).toFixed(2);
     }
     prodSel.addEventListener("change", updateTotal);
     if (qtyInput) qtyInput.addEventListener("input", updateTotal);
   }
 
   backdrop.hidden = false;
-  (form.querySelector("input") || form.querySelector("select")).focus();
+  (form.querySelector("select") || form.querySelector("input")).focus();
 }
 
 function closeModal() {
@@ -879,51 +1075,25 @@ function handleModalSubmit(event) {
     });
 
     // Receita
-    state.finance.unshift({
-      date: today(),
-      description: `Pedido #${nextId} · ${product ? product.name : ""}`,
-      category: "Vendas",
-      type: "Entrada",
-      value: total
-    });
+    state.finance.unshift({ date: today(), description: `Pedido #${nextId} · ${product?.name || ""}`, category: "Vendas", type: "Entrada", value: total });
 
-    // ERP: incrementa vendas e registra CMV
+    // ERP: incrementa vendas + lança CMV
     if (product) {
       product.sold = (product.sold || 0) + qty;
       const cmvValue = product.cost * qty;
       if (cmvValue > 0) {
-        state.finance.unshift({
-          date: today(),
-          description: `CMV · ${product.name} (x${qty})`,
-          category: "CMV",
-          type: "Saída",
-          value: -cmvValue
-        });
+        state.finance.unshift({ date: today(), description: `CMV · ${product.name} (×${qty})`, category: "CMV", type: "Saída", value: -cmvValue });
       }
     }
   }
 
   if (type === "new-product") {
-    state.products.push({
-      id: Date.now(),
-      name: data.name,
-      price: Number(data.price),
-      cost: Number(data.cost),
-      sold: 0,
-      category: data.category
-    });
+    state.products.push({ id: Date.now(), name: data.name, price: Number(data.price), cost: Number(data.cost), sold: 0, category: data.category });
   }
 
   if (type === "new-campaign") {
     if (!state.campaigns) state.campaigns = [];
-    state.campaigns.unshift({
-      name: data.name,
-      channel: data.channel,
-      status: "Ativo",
-      reach: Number(data.reach),
-      leads: 0,
-      budget: Number(data.budget)
-    });
+    state.campaigns.unshift({ name: data.name, channel: data.channel, status: "Ativo", reach: Number(data.reach), leads: 0, budget: Number(data.budget) });
   }
 
   if (type === "new-stock") {
@@ -937,18 +1107,29 @@ function handleModalSubmit(event) {
     state.finance.unshift({ date: today(), description: `Compra de ${data.item}`, category: "Insumos", type: "Saída", value: -(Number(data.quantity) * Number(data.cost)) });
   }
 
+  if (type === "new-supplier") {
+    if (!state.fornecedores) state.fornecedores = [];
+    state.fornecedores.push({ id: Date.now(), name: data.name, product: data.product, phone: data.phone, price: data.price, notes: data.notes, lastBuy: today() });
+  }
+
+  if (type === "new-finance") {
+    const val = Number(data.value);
+    state.finance.unshift({ date: today(), description: data.description, category: data.category, type: data.type, value: data.type === "Saída" ? -Math.abs(val) : Math.abs(val) });
+  }
+
   saveState();
   render();
   closeModal();
 }
 
+// ── Wire Events ─────────────────────────────────────────
 function wireEvents() {
   document.querySelectorAll(".nav-item").forEach((button) => {
     button.addEventListener("click", () => {
       const view = button.dataset.view;
       document.querySelectorAll(".nav-item").forEach((item) => item.classList.toggle("active", item === button));
       document.querySelectorAll(".view").forEach((item) => item.classList.toggle("active", item.id === view));
-      document.getElementById("viewTitle").textContent = viewTitles[view];
+      document.getElementById("viewTitle").textContent = viewTitles[view] || view;
       document.querySelector(".sidebar").classList.remove("open");
     });
   });
@@ -957,7 +1138,7 @@ function wireEvents() {
     document.querySelector(".sidebar").classList.toggle("open");
   });
 
-  document.getElementById("chartMode").addEventListener("change", renderChart);
+  document.getElementById("chartMode")?.addEventListener("change", renderChart);
 
   document.querySelectorAll("#prodToggle .segment").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -970,7 +1151,7 @@ function wireEvents() {
     });
   });
 
-  document.getElementById("printFichas").addEventListener("click", () => window.print());
+  document.getElementById("printFichas")?.addEventListener("click", () => window.print());
 
   document.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => openModal(button.dataset.action));
@@ -982,14 +1163,14 @@ function wireEvents() {
   });
   document.getElementById("modalForm").addEventListener("submit", handleModalSubmit);
 
-  document.querySelectorAll(".segment").forEach((button) => {
+  document.querySelectorAll("#clientes .segment").forEach((button) => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(".segment").forEach((item) => item.classList.toggle("active", item === button));
+      document.querySelectorAll("#clientes .segment").forEach((item) => item.classList.toggle("active", item === button));
       renderClients(button.dataset.filter);
     });
   });
 
-  document.getElementById("assistantForm").addEventListener("submit", (event) => {
+  document.getElementById("assistantForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const input = document.getElementById("assistantInput");
     if (!input.value.trim()) return;
@@ -1008,7 +1189,7 @@ function wireEvents() {
     addMessage("Dados de exemplo recarregados.", "assistant");
   });
 
-  document.getElementById("saveConfig").addEventListener("click", () => {
+  document.getElementById("saveConfig")?.addEventListener("click", () => {
     state.settings.businessName = document.getElementById("businessName").value;
     state.settings.dailyGoal = Number(document.getElementById("dailyGoal").value);
     state.settings.cmvGoal = Number(document.getElementById("cmvGoal").value);
@@ -1018,16 +1199,39 @@ function wireEvents() {
     render();
   });
 
+  document.getElementById("globalSearch").addEventListener("input", (event) => {
+    const term = event.target.value.toLowerCase().trim();
+    if (!term) { renderClients(); return; }
+    const clients = state.clients.filter((item) => `${item.name} ${item.phone} ${item.status}`.toLowerCase().includes(term));
+    const tableEl = document.getElementById("clientsTable");
+    if (tableEl) {
+      tableEl.innerHTML = clients.map((item) => `
+        <tr>
+          <td><strong>${item.name}</strong><br><small>${item.last}</small></td>
+          <td>${item.phone}</td>
+          <td>${item.orders}</td>
+          <td>${currency(item.average)}</td>
+          <td>${currency(item.total)}</td>
+          <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
+        </tr>
+      `).join("");
+    }
+  });
+
+  // Login
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const fd = new FormData(loginForm);
-      if (login(fd.get("user"), fd.get("pass"))) {
+      const user = fd.get("user");
+      if (login(user, fd.get("pass"))) {
         document.getElementById("loginScreen").hidden = true;
         document.querySelector(".app-shell").hidden = false;
         const avatar = document.getElementById("userAvatar");
-        if (avatar) avatar.textContent = (fd.get("user") || "A")[0].toUpperCase();
+        if (avatar) avatar.textContent = user[0].toUpperCase();
+        const sidebarUser = document.getElementById("sidebarUser");
+        if (sidebarUser) sidebarUser.textContent = user;
         render();
         addMessage("Bem-vindo ao Distrito OS! Boa operação.", "assistant");
       } else {
@@ -1038,34 +1242,16 @@ function wireEvents() {
 
   const logoutBtn = document.getElementById("logoutButton");
   if (logoutBtn) logoutBtn.addEventListener("click", logout);
-
-  document.getElementById("globalSearch").addEventListener("input", (event) => {
-    const term = event.target.value.toLowerCase().trim();
-    if (!term) {
-      renderClients();
-      return;
-    }
-    const clients = state.clients.filter((item) => `${item.name} ${item.phone} ${item.status}`.toLowerCase().includes(term));
-    document.getElementById("clientsTable").innerHTML = clients.map((item) => `
-      <tr>
-        <td>${item.name}<br><small>${item.last}</small></td>
-        <td>${item.phone}</td>
-        <td>${item.orders}</td>
-        <td>${currency(item.average)}</td>
-        <td>${currency(item.total)}</td>
-        <td><span class="pill ${statusClass[item.status] || ""}">${item.status}</span></td>
-      </tr>
-    `).join("");
-  });
 }
 
+// ── Boot ────────────────────────────────────────────────
 wireEvents();
 
 if (checkAuth()) {
   document.getElementById("loginScreen").hidden = true;
   document.querySelector(".app-shell").hidden = false;
   render();
-  addMessage("Distrito OS pronto. Você já pode perguntar sobre vendas, estoque, clientes ou produtos.", "assistant");
+  addMessage("Distrito OS pronto. Pergunte sobre vendas, estoque, clientes ou produtos.", "assistant");
 } else {
   document.getElementById("loginScreen").hidden = false;
 }

@@ -25,7 +25,7 @@
             Senha
             <input name="pass" type="password" autocomplete="current-password" placeholder="••••••••" required />
           </label>
-          <div class="login-error" id="loginError" hidden>Usuário ou senha incorretos. Tente novamente.</div>
+          <div class="login-error" id="loginError" hidden>Usuário ou senha incorretos.</div>
           <button class="primary-button login-btn" type="submit">Entrar no sistema</button>
         </form>
         <p class="login-footer">Acesso restrito · Distrito XVII &copy; 2025</p>
@@ -40,14 +40,11 @@
           </div>
           <div>
             <strong>Distrito OS</strong>
-            <span>Petiscos & Caldos</span>
+            <span>Petiscos &amp; Caldos</span>
           </div>
         </div>
 
         <nav class="nav-list">
-          <div class="nav-phase">
-            <span class="phase-label">Fase 1 · Operação</span>
-          </div>
           <button class="nav-item active" data-view="dashboard" title="Dashboard">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"/></svg>
             <span>Dashboard</span>
@@ -56,58 +53,46 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l2 4v12H5V8l2-4Zm.4 4h9.2l-.8-2H8.2l-.8 2ZM7 10v8h10v-8H7Zm2 2h6v2H9v-2Z"/></svg>
             <span>Pedidos</span>
           </button>
+          <button class="nav-item" data-view="producao" title="Produção">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2s-5 5.5-5 10a5 5 0 0 0 10 0C17 7.5 12 2 12 2Zm0 13a2 2 0 0 1-2-2c0-1.5 2-4 2-4s2 2.5 2 4a2 2 0 0 1-2 2Z"/></svg>
+            <span>Produção</span>
+          </button>
+          <button class="nav-item" data-view="clientes" title="Clientes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0 2c-3.9 0-7 2-7 4.5V20h14v-2.5C16 15 12.9 13 9 13Zm8.5-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm.5 1c-.8 0-1.5.1-2.1.4 1.4 1 2.1 2.4 2.1 4.1V20h4v-2.2c0-2.7-2-4.8-4-4.8Z"/></svg>
+            <span>Clientes</span>
+          </button>
           <button class="nav-item" data-view="produtos" title="Produtos">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6V3Zm2 2v14h8V5H8Zm1 2h6v2H9V7Zm0 4h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
             <span>Produtos</span>
+          </button>
+          <button class="nav-item" data-view="estoque" title="Estoque">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7 12 3l9 4v10l-9 4-9-4V7Zm9 2.2L17.7 7 12 4.8 6.3 7 12 9.2ZM5 8.6v7.1l6 2.7v-7.1L5 8.6Zm14 0-6 2.7v7.1l6-2.7V8.6Z"/></svg>
+            <span>Estoque</span>
+          </button>
+          <button class="nav-item" data-view="compras" title="Compras">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5L3 20h18L19 7Zm-9-1a2 2 0 0 1 4 0v1h-4V6Zm8 12H6l1.5-9h9L17 18Z"/></svg>
+            <span>Compras</span>
           </button>
           <button class="nav-item" data-view="financeiro" title="Financeiro">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5Zm2 3v8h12V8H6Zm2 2h4v2H8v-2Zm6 0h2v2h-2v-2Zm-6 4h8v1H8v-1Z"/></svg>
             <span>Financeiro</span>
           </button>
-
-          <div class="nav-phase">
-            <span class="phase-label">Fase 2 · Estoque</span>
-          </div>
-          <button class="nav-item nav-soon" data-view="estoque" title="Estoque">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7 12 3l9 4v10l-9 4-9-4V7Zm9 2.2L17.7 7 12 4.8 6.3 7 12 9.2ZM5 8.6v7.1l6 2.7v-7.1L5 8.6Zm14 0-6 2.7v7.1l6-2.7V8.6Z"/></svg>
-            <span>Estoque</span>
-            <span class="nav-badge">Em breve</span>
-          </button>
-
-          <div class="nav-phase">
-            <span class="phase-label">Fase 3 · Clientes</span>
-          </div>
-          <button class="nav-item nav-soon" data-view="clientes" title="Clientes">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0 2c-3.9 0-7 2-7 4.5V20h14v-2.5C16 15 12.9 13 9 13Zm8.5-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm.5 1c-.8 0-1.5.1-2.1.4 1.4 1 2.1 2.4 2.1 4.1V20h4v-2.2c0-2.7-2-4.8-4-4.8Z"/></svg>
-            <span>Clientes</span>
-            <span class="nav-badge">Em breve</span>
-          </button>
-          <button class="nav-item nav-soon" data-view="relatorios" title="Relatórios">
+          <button class="nav-item" data-view="relatorios" title="Relatórios">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5V3Zm2 2v14h10V5H7Zm2 10h2V9H9v6Zm4 0h2V7h-2v8Z"/></svg>
             <span>Relatórios</span>
-            <span class="nav-badge">Em breve</span>
           </button>
-          <button class="nav-item nav-soon" data-view="marketing" title="Marketing">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 3v2a6 6 0 0 1 0 12v2l-7-3H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2h6l7-3Zm-7 4H5v6h6V7Zm5 1.27v7.45a4 4 0 0 0 0-7.45ZM7 17l1 3H6l-1-3h2Z"/></svg>
-            <span>Marketing</span>
-            <span class="nav-badge">Em breve</span>
-          </button>
-
-          <div class="nav-phase">
-            <span class="phase-label">Sistema</span>
-          </div>
           <button class="nav-item" data-view="ia" title="IA">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 2h2v3h3v2H8V5h3V2Zm-5 8h12a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-4a3 3 0 0 1 3-3Zm0 2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H6Zm2 2h2v2H8v-2Zm6 0h2v2h-2v-2Z"/></svg>
             <span>IA</span>
           </button>
           <button class="nav-item" data-view="config" title="Configurações">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13.5c.1-.5.1-1 .1-1.5s0-1-.1-1.5l2-1.5-2-3.5-2.4 1a8 8 0 0 0-2.6-1.5L14 2h-4l-.4 3a8 8 0 0 0-2.6 1.5l-2.4-1-2 3.5 2 1.5c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.5 2 3.5 2.4-1a8 8 0 0 0 2.6 1.5l.4 3h4l.4-3a8 8 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg>
-            <span>Config</span>
+            <span>Configurações</span>
           </button>
         </nav>
 
         <div class="sidebar-footer">
-          <span>Fase 1 · Operação</span>
+          <span id="sidebarUser">admin</span>
           <strong>v2.0</strong>
         </div>
       </aside>
@@ -124,7 +109,7 @@
           <div class="topbar-actions">
             <label class="search">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 19.6-4.7-4.7a7 7 0 1 0-1.4 1.4l4.7 4.7 1.4-1.4ZM5 11a5 5 0 1 1 10 0 5 5 0 0 1-10 0Z"/></svg>
-              <input id="globalSearch" type="search" placeholder="Buscar cliente, pedido ou produto" />
+              <input id="globalSearch" type="search" placeholder="Buscar..." />
             </label>
             <button class="icon-button" id="seedButton" title="Recarregar dados de exemplo">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 6.3A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.2L13 11h8V3l-3.3 3.3Z"/></svg>
@@ -138,72 +123,24 @@
           </div>
         </header>
 
-        <section class="view active" id="dashboard" aria-labelledby="viewTitle">
-          <div class="hero-panel">
-            <div>
-              <div class="hero-brand">
-                <img src="assets/distrito-xvii-logo.jpeg" alt="Logo Distrito XVII" />
-                <div>
-                  <p class="eyebrow">Distrito XVII</p>
-                  <span>Petiscos & Caldos</span>
-                </div>
-              </div>
-              <h2>Operação premium para uma cozinha com identidade forte.</h2>
-              <p>Dados de pedidos, estoque, clientes e caixa em uma tela com a presença visual do Distrito XVII.</p>
-            </div>
-            <div class="hero-metric">
-              <span>Faturamento</span>
-              <strong id="heroRevenue">R$ 0,00</strong>
-              <small id="heroDelta">+0% vs. ontem</small>
-            </div>
-          </div>
-
-          <div class="metric-grid" id="metricGrid"></div>
+        <!-- ── DASHBOARD ─────────────────────────────── -->
+        <section class="view active" id="dashboard">
+          <div class="kpi-row" id="kpiRow"></div>
 
           <div class="content-grid">
             <section class="panel wide">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">Vendas</p>
-                  <h3>Faturamento da semana</h3>
-                </div>
-                <select id="chartMode" class="control">
-                  <option value="revenue">Faturamento</option>
-                  <option value="orders">Pedidos</option>
-                </select>
-              </div>
-              <div class="bar-chart" id="salesChart"></div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">Produtos</p>
-                  <h3>Mais vendidos</h3>
-                </div>
-              </div>
-              <div class="rank-list" id="topProducts"></div>
-            </section>
-          </div>
-
-          <div class="content-grid">
-            <section class="panel">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">Alertas</p>
-                  <h3>Estoque crítico</h3>
-                </div>
-              </div>
-              <div class="stock-alerts" id="stockAlerts"></div>
-            </section>
-
-            <section class="panel wide">
-              <div class="panel-header">
-                <div>
-                  <p class="eyebrow">Cozinha</p>
+                  <p class="eyebrow">Hoje</p>
                   <h3>Pedidos recentes</h3>
                 </div>
-                <button class="primary-button" data-action="new-order">Novo pedido</button>
+                <div class="header-actions">
+                  <select id="chartMode" class="control" style="width:auto">
+                    <option value="revenue">Faturamento</option>
+                    <option value="orders">Pedidos</option>
+                  </select>
+                  <button class="primary-button" data-action="new-order">+ Novo pedido</button>
+                </div>
               </div>
               <div class="table-wrap">
                 <table>
@@ -221,22 +158,53 @@
                 </table>
               </div>
             </section>
+
+            <aside class="side-stack">
+              <section class="panel">
+                <div class="panel-header">
+                  <div><p class="eyebrow">Semana</p><h3>Vendas</h3></div>
+                </div>
+                <div class="bar-chart compact" id="salesChart"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div><p class="eyebrow">Produtos</p><h3>Mais vendidos</h3></div>
+                </div>
+                <div class="rank-list" id="topProducts"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header">
+                  <div><p class="eyebrow">Alertas</p><h3>Estoque crítico</h3></div>
+                </div>
+                <div class="stock-alerts" id="stockAlerts"></div>
+              </section>
+            </aside>
           </div>
         </section>
 
+        <!-- ── PEDIDOS ───────────────────────────────── -->
         <section class="view" id="pedidos">
           <div class="panel">
             <div class="panel-header">
               <div>
                 <p class="eyebrow">Operação</p>
-                <h3>Pedidos</h3>
+                <h3>Kanban de pedidos</h3>
               </div>
-              <button class="primary-button" data-action="new-order">Novo pedido</button>
+              <button class="primary-button" data-action="new-order">+ Novo pedido</button>
             </div>
             <div class="kanban" id="orderBoard"></div>
           </div>
         </section>
 
+        <!-- ── PRODUÇÃO ──────────────────────────────── -->
+        <section class="view" id="producao">
+          <div class="kitchen-bar" id="kitchenBar"></div>
+          <div class="kitchen-board" id="kitchenBoard"></div>
+        </section>
+
+        <!-- ── CLIENTES ──────────────────────────────── -->
         <section class="view" id="clientes">
           <div class="panel">
             <div class="panel-header">
@@ -268,6 +236,7 @@
           </div>
         </section>
 
+        <!-- ── PRODUTOS ──────────────────────────────── -->
         <section class="view" id="produtos">
           <div class="panel">
             <div class="panel-header">
@@ -291,6 +260,7 @@
           </div>
         </section>
 
+        <!-- ── ESTOQUE ───────────────────────────────── -->
         <section class="view" id="estoque">
           <div class="panel">
             <div class="panel-header">
@@ -304,6 +274,46 @@
           </div>
         </section>
 
+        <!-- ── COMPRAS ───────────────────────────────── -->
+        <section class="view" id="compras">
+          <div class="content-grid compras-grid">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Automático</p>
+                  <h3>Lista de compras</h3>
+                </div>
+              </div>
+              <div class="shopping-list" id="shoppingList"></div>
+            </section>
+
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Fornecedores</p>
+                  <h3>Contatos e preços</h3>
+                </div>
+                <button class="primary-button" data-action="new-supplier">+ Fornecedor</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fornecedor</th>
+                      <th>Produto</th>
+                      <th>Telefone</th>
+                      <th>Preço ref.</th>
+                      <th>Última compra</th>
+                    </tr>
+                  </thead>
+                  <tbody id="suppliersTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- ── FINANCEIRO ────────────────────────────── -->
         <section class="view" id="financeiro">
           <div class="metric-grid compact" id="financeMetrics"></div>
           <div class="content-grid">
@@ -313,6 +323,7 @@
                   <p class="eyebrow">Caixa</p>
                   <h3>Fluxo financeiro</h3>
                 </div>
+                <button class="primary-button" data-action="new-finance">Lançamento manual</button>
               </div>
               <div class="table-wrap">
                 <table>
@@ -341,10 +352,12 @@
           </div>
         </section>
 
+        <!-- ── RELATÓRIOS ────────────────────────────── -->
         <section class="view" id="relatorios">
           <div class="report-grid" id="reportsGrid"></div>
         </section>
 
+        <!-- ── MARKETING ─────────────────────────────── -->
         <section class="view" id="marketing">
           <div class="metric-grid compact" id="marketingMetrics"></div>
           <div class="content-grid">
@@ -377,7 +390,7 @@
               <div class="panel-header">
                 <div>
                   <p class="eyebrow">Canais</p>
-                  <h3>Performance por canal</h3>
+                  <h3>Performance</h3>
                 </div>
               </div>
               <div class="rank-list" id="channelRank"></div>
@@ -385,6 +398,7 @@
           </div>
         </section>
 
+        <!-- ── IA ────────────────────────────────────── -->
         <section class="view" id="ia">
           <div class="content-grid">
             <section class="panel wide">
@@ -417,6 +431,7 @@
           </div>
         </section>
 
+        <!-- ── CONFIG ────────────────────────────────── -->
         <section class="view" id="config">
           <div class="panel">
             <div class="panel-header">
@@ -436,7 +451,7 @@
                 <input id="dailyGoal" type="number" value="1500" />
               </label>
               <label>
-                CMV máximo desejado
+                CMV máximo desejado (%)
                 <input id="cmvGoal" type="number" value="32" />
               </label>
               <label>
