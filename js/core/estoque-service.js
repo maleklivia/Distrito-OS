@@ -114,6 +114,33 @@ const EstoqueService = {
    * FUTURO: estornar baixa efetiva se "Entregue" for revertido.
    */
   estornarEstoque(pedidoId, itensPedido) {
+    if (!itensPedido || !itensPedido.length) {
+      EventBus.emit(EVENTS.ESTOQUE_ESTORNADO, { pedidoId });
+      return { ok: true };
+    }
+
+    if (typeof Stores === 'undefined') return { ok: false, erro: 'Stores indisponível' };
+
+    const ingredientes = Stores.ingredientes.get();
+    const fichas       = Stores.fichas.get();
+
+    for (const item of itensPedido) {
+      const ficha = fichas.find(f => f.produtoId === item.produtoId);
+      if (!ficha) continue;
+
+      for (const fi of ficha.itens) {
+        const ing = ingredientes.find(i => i.id === fi.ingredienteId);
+        if (!ing) continue;
+
+        const necessario = fi.quantidade * item.qty;
+        const fator      = convertUnits(fi.unidade, ing.unidade);
+        const estorno    = fator !== null ? necessario * fator : necessario;
+
+        ing.estoqueAtual += estorno;
+      }
+    }
+
+    Stores.ingredientes.set(ingredientes);
     Logger.log('estoque.estornado', { pedidoId });
     EventBus.emit(EVENTS.ESTOQUE_ESTORNADO, { pedidoId, itens: itensPedido });
     return { ok: true };
