@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../css/sidebar.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/modules.css">
+  <link rel="stylesheet" href="../css/pedidos.css">
 </head>
 <body class="app-body" data-page="dashboard">
   <div class="app-layout">
@@ -27,6 +28,11 @@
       <!-- KPI Row -->
       <div class="kpi-row" id="kpi-row">
         <!-- renderizado por app.js → Modules.dashboard._renderKpis() -->
+      </div>
+
+      <!-- Order Stats Bar -->
+      <div class="order-stats-bar" id="order-stats-bar">
+        <!-- renderizado por app.js → Modules.dashboard._renderOrderStats() -->
       </div>
 
       <!-- Catalog Stats Bar -->
@@ -71,6 +77,8 @@
     </main>
   </div>
 
+  <script src="../js/core/event-bus.js"></script>
+  <script src="../js/core/logger.js"></script>
   <script src="../js/storage.js"></script>
   <script src="../js/stores.js"></script>
   <script src="../js/utils.js"></script>

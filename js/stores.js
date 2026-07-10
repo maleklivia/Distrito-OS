@@ -149,10 +149,145 @@ const SEED_FICHAS = [
   },
 ];
 
+/* ── Domínio: Pedidos e Clientes ─────────────────────────────── */
+
+const ORIGENS = ['WhatsApp', 'iFood', 'Site', 'Instagram', 'Balcão', 'Telefone'];
+
+const STATUS_PEDIDO = [
+  'Novo', 'Aguardando Pagamento', 'Pago',
+  'Em Produção', 'Pronto', 'Saiu para Entrega',
+  'Entregue', 'Cancelado',
+];
+
+const FORMAS_PAGAMENTO = [
+  'Dinheiro', 'Cartão Débito', 'Cartão Crédito', 'PIX', 'iFood', 'Fiado',
+];
+
+const STATUS_TRANSITIONS = {
+  'Novo':                ['Aguardando Pagamento', 'Em Produção', 'Cancelado'],
+  'Aguardando Pagamento':['Pago', 'Cancelado'],
+  'Pago':                ['Em Produção', 'Cancelado'],
+  'Em Produção':         ['Pronto', 'Cancelado'],
+  'Pronto':              ['Saiu para Entrega', 'Entregue', 'Cancelado'],
+  'Saiu para Entrega':   ['Entregue', 'Cancelado'],
+  'Entregue':            [],
+  'Cancelado':           [],
+};
+
+/* Retorna o próximo status do fluxo principal (happy path) */
+function nextStatus(status) {
+  const map = {
+    'Novo':                'Aguardando Pagamento',
+    'Aguardando Pagamento':'Pago',
+    'Pago':                'Em Produção',
+    'Em Produção':         'Pronto',
+    'Pronto':              'Saiu para Entrega',
+    'Saiu para Entrega':   'Entregue',
+  };
+  return map[status] || null;
+}
+
+/* Retorna o próximo número de pedido (max + 1) */
+function nextNumeroPedido(pedidos) {
+  if (!pedidos || !pedidos.length) return 1;
+  const max = Math.max(0, ...pedidos.map(p => Number(p.numeroPedido) || 0));
+  return max + 1;
+}
+
+/* ── Seed Data: Pedidos ──────────────────────────────────────── */
+
+const SEED_PEDIDOS = [
+  {
+    id: 'ped-001', numeroPedido: 1,
+    origem: 'WhatsApp', clienteId: 'cli-001', clienteNome: 'Ana Lima',
+    status: 'Entregue',
+    itens: [{ produtoId: 'p-001', nome: 'Batata Cheddar', qty: 2, precoUnitario: 38, subtotal: 76 }],
+    subtotal: 76, taxaEntrega: 5, desconto: 0, total: 81,
+    formaPagamento: 'PIX', observacoes: '',
+    dataCriacao: '2026-07-10T10:00:00.000Z', dataAtualizacao: '2026-07-10T11:30:00.000Z',
+  },
+  {
+    id: 'ped-002', numeroPedido: 2,
+    origem: 'iFood', clienteId: 'cli-002', clienteNome: 'Carlos Matos',
+    status: 'Entregue',
+    itens: [{ produtoId: 'p-005', nome: 'Combo Família', qty: 1, precoUnitario: 89, subtotal: 89 }],
+    subtotal: 89, taxaEntrega: 0, desconto: 5, total: 84,
+    formaPagamento: 'iFood', observacoes: '',
+    dataCriacao: '2026-07-10T11:00:00.000Z', dataAtualizacao: '2026-07-10T12:45:00.000Z',
+  },
+  {
+    id: 'ped-003', numeroPedido: 3,
+    origem: 'Balcão', clienteId: null, clienteNome: 'Balcão',
+    status: 'Em Produção',
+    itens: [
+      { produtoId: 'p-002', nome: 'Batata Bacon',  qty: 1, precoUnitario: 42, subtotal: 42 },
+      { produtoId: 'p-003', nome: 'Caldo Verde',   qty: 2, precoUnitario: 28, subtotal: 56 },
+    ],
+    subtotal: 98, taxaEntrega: 0, desconto: 0, total: 98,
+    formaPagamento: 'Dinheiro', observacoes: 'Sem bacon no caldo',
+    dataCriacao: '2026-07-10T13:00:00.000Z', dataAtualizacao: '2026-07-10T13:15:00.000Z',
+  },
+  {
+    id: 'ped-004', numeroPedido: 4,
+    origem: 'Instagram', clienteId: 'cli-003', clienteNome: 'Fernanda Costa',
+    status: 'Aguardando Pagamento',
+    itens: [{ produtoId: 'p-004', nome: 'Bolinho de Aipim', qty: 2, precoUnitario: 32, subtotal: 64 }],
+    subtotal: 64, taxaEntrega: 8, desconto: 0, total: 72,
+    formaPagamento: 'PIX', observacoes: '',
+    dataCriacao: '2026-07-10T13:30:00.000Z', dataAtualizacao: '2026-07-10T13:30:00.000Z',
+  },
+  {
+    id: 'ped-005', numeroPedido: 5,
+    origem: 'WhatsApp', clienteId: 'cli-001', clienteNome: 'Ana Lima',
+    status: 'Novo',
+    itens: [{ produtoId: 'p-001', nome: 'Batata Cheddar', qty: 1, precoUnitario: 38, subtotal: 38 }],
+    subtotal: 38, taxaEntrega: 5, desconto: 0, total: 43,
+    formaPagamento: 'Cartão Crédito', observacoes: 'Capricha no molho!',
+    dataCriacao: '2026-07-10T14:00:00.000Z', dataAtualizacao: '2026-07-10T14:00:00.000Z',
+  },
+];
+
+/* ── Seed Data: Clientes ─────────────────────────────────────── */
+
+const SEED_CLIENTES = [
+  {
+    id: 'cli-001', nome: 'Ana Lima',
+    telefone: '(11) 99999-0001', email: 'ana.lima@email.com', cpf: '',
+    observacoes: 'Cliente fiel, sempre pede cheddar',
+    enderecos: [
+      { id: 'end-001', rua: 'Rua das Flores', numero: '123', bairro: 'Centro', cidade: 'São Paulo', estado: 'SP', cep: '01000-000', complemento: 'Apto 5' },
+    ],
+    dataCadastro: '2026-07-01',
+  },
+  {
+    id: 'cli-002', nome: 'Carlos Matos',
+    telefone: '(11) 98888-0002', email: '', cpf: '',
+    observacoes: '',
+    enderecos: [
+      { id: 'end-002', rua: 'Av. Paulista', numero: '1500', bairro: 'Bela Vista', cidade: 'São Paulo', estado: 'SP', cep: '01310-200', complemento: '' },
+    ],
+    dataCadastro: '2026-07-05',
+  },
+  {
+    id: 'cli-003', nome: 'Fernanda Costa',
+    telefone: '(11) 97777-0003', email: 'fernanda@email.com', cpf: '',
+    observacoes: 'Alérgica a bacon',
+    enderecos: [],
+    dataCadastro: '2026-07-08',
+  },
+];
+
 /* ── Stores ──────────────────────────────────────────────────── */
+
+const STORE_KEYS_V3 = {
+  PEDIDOS:  'distrito-pedidos-v1',
+  CLIENTES: 'distrito-clientes-v1',
+};
 
 const Stores = {
   produtos:     makeStore(STORE_KEYS.PRODUTOS,     SEED_PRODUTOS),
   ingredientes: makeStore(STORE_KEYS.INGREDIENTES, SEED_INGREDIENTES),
   fichas:       makeStore(STORE_KEYS.FICHAS,       SEED_FICHAS),
+  pedidos:      makeStore(STORE_KEYS_V3.PEDIDOS,   SEED_PEDIDOS),
+  clientes:     makeStore(STORE_KEYS_V3.CLIENTES,  SEED_CLIENTES),
 };
