@@ -8,34 +8,155 @@
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/sidebar.css">
   <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/modules.css">
 </head>
 <body class="app-body" data-page="produtos">
   <div class="app-layout">
     <aside id="sidebar-slot"></aside>
     <div id="header-slot"></div>
+
     <main class="app-main" id="page-content">
+
+      <!-- Page Header -->
       <div class="page-header">
         <div class="page-header__left">
           <h2 class="page-title-main">Produtos</h2>
-          <span class="badge badge-warning">Em Desenvolvimento</span>
         </div>
       </div>
-      <div class="page-coming-soon">
-        <div class="page-coming-soon__icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-          </svg>
-        </div>
-        <h3 class="page-coming-soon__title">Produtos</h3>
-        <p class="page-coming-soon__desc">Cardápio digital, fichas técnicas, CMV por produto e gestão de categorias.</p>
-        <span class="badge badge-neutral">Previsto para v0.2</span>
+
+      <!-- Module Tabs -->
+      <div class="module-tabs">
+        <button class="tab-btn active" data-tab="cardapio">Cardápio</button>
+        <button class="tab-btn" data-tab="ingredientes">Ingredientes</button>
+        <button class="tab-btn" data-tab="fichas">Fichas Técnicas</button>
       </div>
+
+      <!-- ── Tab: Cardápio ──────────────────────────────────────── -->
+      <div id="tab-cardapio" class="tab-panel">
+        <div class="module-toolbar">
+          <input type="search" class="form-input toolbar-search" id="cardapio-search"
+            placeholder="Buscar produto ou código...">
+          <select class="form-select toolbar-filter" id="cardapio-categoria">
+            <option value="">Todas categorias</option>
+            <option>Batatas</option>
+            <option>Caldos</option>
+            <option>Aperitivos</option>
+            <option>Pratos</option>
+            <option>Combos</option>
+            <option>Bebidas</option>
+            <option>Sobremesas</option>
+            <option>Outros</option>
+          </select>
+          <select class="form-select toolbar-filter" id="cardapio-ativo">
+            <option value="todos">Todos</option>
+            <option value="ativo">Ativos</option>
+            <option value="inativo">Inativos</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-novo-produto">+ Produto</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="table-cardapio">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Custo (FT)</th>
+                <th>Margem</th>
+                <th>Preparo</th>
+                <th>Status</th>
+                <th style="text-align:right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-cardapio">
+              <!-- renderizado por ProdutosModule -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Tab: Ingredientes ──────────────────────────────────── -->
+      <div id="tab-ingredientes" class="tab-panel hidden">
+        <div class="module-toolbar">
+          <input type="search" class="form-input toolbar-search" id="ing-search"
+            placeholder="Buscar ingrediente ou fornecedor...">
+          <select class="form-select toolbar-filter" id="ing-categoria">
+            <option value="">Todas categorias</option>
+            <option>Proteínas</option>
+            <option>Vegetais</option>
+            <option>Laticínios</option>
+            <option>Grãos e Farinhas</option>
+            <option>Temperos</option>
+            <option>Embalagens</option>
+            <option>Bebidas</option>
+            <option>Outros</option>
+          </select>
+          <select class="form-select toolbar-filter" id="ing-ativo">
+            <option value="todos">Todos</option>
+            <option value="ativo">Ativos</option>
+            <option value="inativo">Inativos</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-novo-ingrediente">+ Ingrediente</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Unidade</th>
+                <th>Custo Unit.</th>
+                <th>Estoque</th>
+                <th>Fornecedor</th>
+                <th>Status</th>
+                <th style="text-align:right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-ingredientes">
+              <!-- renderizado por IngredientesModule -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Tab: Fichas Técnicas ───────────────────────────────── -->
+      <div id="tab-fichas" class="tab-panel hidden">
+        <div class="ficha-layout">
+
+          <!-- Sidebar: lista de produtos -->
+          <div class="ficha-sidebar">
+            <div class="ficha-sidebar__search">
+              <input type="search" class="form-input" id="ficha-produto-search"
+                placeholder="Buscar produto...">
+            </div>
+            <div id="ficha-produto-list">
+              <!-- renderizado por FichasModule -->
+            </div>
+          </div>
+
+          <!-- Editor de ficha -->
+          <div class="ficha-editor" id="ficha-editor">
+            <div class="ficha-editor__empty">
+              <p>Selecione um produto na lista para editar sua ficha técnica.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </main>
   </div>
+
   <script src="../js/storage.js"></script>
+  <script src="../js/stores.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/ui.js"></script>
+  <script src="../js/modules/fichas.js"></script>
+  <script src="../js/modules/ingredientes.js"></script>
+  <script src="../js/modules/produtos.js"></script>
   <script src="../js/app.js"></script>
 </body>
 </html>

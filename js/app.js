@@ -75,6 +75,8 @@ const Modules = {
   dashboard: {
     async init(state) {
       this._renderKpis(state);
+      this._renderOrderStats();
+      this._renderCatalogStats();
       this._renderRecentOrders(state);
       this._renderTopProducts(state);
       this._renderStockAlerts(state);
@@ -127,6 +129,61 @@ const Modules = {
           <strong class="kpi-card__value">${c.value}</strong>
           <small class="kpi-card__sub">${c.sub}</small>
         </article>
+      `).join('');
+    },
+
+    _renderCatalogStats() {
+      const el = document.getElementById('catalog-bar');
+      if (!el) return;
+
+      if (typeof Stores === 'undefined') { el.style.display = 'none'; return; }
+
+      const produtos     = Stores.produtos.get();
+      const ingredientes = Stores.ingredientes.get();
+      const fichas       = Stores.fichas.get();
+      const ativos       = produtos.filter(p => p.ativo).length;
+
+      const stats = [
+        { label: 'Produtos',    value: produtos.length,     sub: `${ativos} ativos` },
+        { label: 'Ingredientes',value: ingredientes.length,  sub: 'cadastrados' },
+        { label: 'Fichas',      value: fichas.length,        sub: 'técnicas' },
+        { label: 'Categorias',  value: [...new Set(produtos.map(p => p.categoria))].length, sub: 'de produto' },
+      ];
+
+      el.innerHTML = stats.map(s => `
+        <div class="catalog-stat">
+          <span class="catalog-stat__label">${s.label}</span>
+          <span class="catalog-stat__value">${s.value}</span>
+          <span class="catalog-stat__sub">${s.sub}</span>
+        </div>
+      `).join('');
+    },
+
+    _renderOrderStats() {
+      const el = document.getElementById('order-stats-bar');
+      if (!el || typeof Stores === 'undefined') return;
+
+      const today   = Utils.today();
+      const pedidos = Stores.pedidos.get();
+
+      const hoje     = pedidos.filter(p => p.dataCriacao?.startsWith(today)).length;
+      const pendentes= pedidos.filter(p => ['Novo', 'Aguardando Pagamento', 'Pago'].includes(p.status)).length;
+      const emProd   = pedidos.filter(p => p.status === 'Em Produção').length;
+      const entregues= pedidos.filter(p => p.status === 'Entregue' && p.dataCriacao?.startsWith(today)).length;
+
+      const stats = [
+        { label: 'Pedidos Hoje',  value: hoje,      sub: 'criados hoje'    },
+        { label: 'Pendentes',     value: pendentes,  sub: 'aguardando ação' },
+        { label: 'Em Produção',   value: emProd,     sub: 'na cozinha'      },
+        { label: 'Entregues Hoje',value: entregues,  sub: 'finalizados'     },
+      ];
+
+      el.innerHTML = stats.map(s => `
+        <div class="order-stat">
+          <span class="order-stat__label">${s.label}</span>
+          <span class="order-stat__value">${s.value}</span>
+          <span class="order-stat__sub">${s.sub}</span>
+        </div>
       `).join('');
     },
 
@@ -208,19 +265,18 @@ const Modules = {
     },
   },
 
-  /* Stub modules — cada view será implementada no seu tempo */
-  financeiro:   { async init() {} },
-  pedidos:      { async init() {} },
-  producao:     { async init() {} },
-  produtos:     { async init() {} },
-  estoque:      { async init() {} },
-  compras:      { async init() {} },
-  fornecedores: { async init() {} },
-  clientes:     { async init() {} },
-  marketing:    { async init() {} },
-  documentos:   { async init() {} },
-  relatorios:   { async init() {} },
-  configuracoes:{ async init() {} },
+  financeiro:   { async init() { if (typeof FinanceiroModule   !== 'undefined') FinanceiroModule.init();   } },
+  pedidos:      { async init() { if (typeof PedidosModule      !== 'undefined') PedidosModule.init();      } },
+  producao:     { async init() { if (typeof ProducaoModule     !== 'undefined') ProducaoModule.init();     } },
+  produtos:     { async init() { if (typeof ProdutosModule     !== 'undefined') ProdutosModule.init();     } },
+  clientes:     { async init() { if (typeof ClientesModule     !== 'undefined') ClientesModule.init();     } },
+  estoque:      { async init() { if (typeof EstoqueModule      !== 'undefined') EstoqueModule.init();      } },
+  compras:      { async init() { if (typeof ComprasModule      !== 'undefined') ComprasModule.init();      } },
+  fornecedores: { async init() { if (typeof FornecedoresModule !== 'undefined') FornecedoresModule.init(); } },
+  marketing:    { async init() { if (typeof MarketingModule    !== 'undefined') MarketingModule.init();    } },
+  documentos:   { async init() { if (typeof DocumentosModule   !== 'undefined') DocumentosModule.init();   } },
+  relatorios:   { async init() { if (typeof RelatoriosModule   !== 'undefined') RelatoriosModule.init();   } },
+  configuracoes:{ async init() { if (typeof ConfiguracoesModule!== 'undefined') ConfiguracoesModule.init();} },
 };
 
 /* ── Auto-init via data-page attribute ───────────────────────── */

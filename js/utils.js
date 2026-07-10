@@ -101,6 +101,18 @@ const Utils = {
     return Math.round((profit / revenue) * 100);
   },
 
+  /* ── Security ───────────────────────────────────────────────── */
+
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  },
+
   /* ── DOM Helpers ────────────────────────────────────────────── */
 
   qs(selector, root = document) {

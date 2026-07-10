@@ -99,14 +99,16 @@ const UI = {
 
   _activeModal: null,
 
-  openModal({ title, body, onConfirm, confirmLabel = 'Salvar', confirmClass = 'btn-primary' }) {
+  openModal({ title, body, onConfirm, confirmLabel = 'Salvar', confirmClass = 'btn-primary', size = '' }) {
     this.closeModal();
+
+    const sizeClass = size === 'wide' ? 'modal--wide' : size === 'small' ? 'modal--small' : '';
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'modal-overlay';
     overlay.innerHTML = `
-      <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal ${sizeClass}" role="dialog" aria-modal="true">
         <div class="modal__header">
           <h2 class="modal__title">${title}</h2>
           <button class="modal__close" id="modal-close" aria-label="Fechar">
