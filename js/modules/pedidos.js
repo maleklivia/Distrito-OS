@@ -241,6 +241,7 @@ const PedidosModule = {
             <div class="form-group">
               <label class="form-label">Taxa Entrega (R$)</label>
               <input type="number" id="pedido-taxa" class="form-input" value="0" min="0" step="0.5">
+              <small id="frete-info" style="color:var(--text-muted);font-size:var(--text-xs);display:block;margin-top:4px"></small>
             </div>
             <div class="form-group">
               <label class="form-label">Desconto (R$)</label>
@@ -282,6 +283,39 @@ const PedidosModule = {
         this._renderCarrinho();
       });
     });
+
+    // Frete automático ao selecionar cliente
+    document.getElementById('pedido-cliente')?.addEventListener('change', e => {
+      this._calcularFreteCliente(e.target.value);
+    });
+  },
+
+  async _calcularFreteCliente(clienteId) {
+    if (!clienteId || typeof FreteService === 'undefined') return;
+    const clientes = Stores.clientes?.get() || [];
+    const cliente  = clientes.find(c => c.id === clienteId);
+    const cep      = cliente?.enderecos?.[0]?.cep;
+    const infoEl   = document.getElementById('frete-info');
+    const taxaEl   = document.getElementById('pedido-taxa');
+    if (!cep) {
+      if (infoEl) infoEl.textContent = '';
+      return;
+    }
+    if (infoEl) infoEl.textContent = 'Calculando frete…';
+    try {
+      const resultado = await FreteService.calcularFreteComEndereco(cep);
+      if (taxaEl) {
+        taxaEl.value = resultado.valor;
+        Carrinho.setTaxaEntrega(resultado.valor);
+        this._renderCarrinho();
+      }
+      if (infoEl) {
+        const loc = [resultado.bairro, resultado.cidade, resultado.uf].filter(Boolean).join(', ');
+        infoEl.textContent = `Frete calculado para ${loc || cep} — R$ ${resultado.valor.toFixed(2)}`;
+      }
+    } catch {
+      if (infoEl) infoEl.textContent = 'Não foi possível calcular o frete.';
+    }
   },
 
   _renderCarrinho() {

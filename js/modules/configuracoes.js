@@ -20,6 +20,7 @@ const ConfiguracoesModule = {
       <div class="module-tabs">
         <button class="tab-btn ${this._tab === 'restaurante' ? 'active' : ''}" data-cfg-tab="restaurante">Restaurante</button>
         <button class="tab-btn ${this._tab === 'metas' ? 'active' : ''}" data-cfg-tab="metas">Metas</button>
+        <button class="tab-btn ${this._tab === 'entrega' ? 'active' : ''}" data-cfg-tab="entrega">Entrega</button>
         <button class="tab-btn ${this._tab === 'horario' ? 'active' : ''}" data-cfg-tab="horario">Horário</button>
         <button class="tab-btn ${this._tab === 'integracoes' ? 'active' : ''}" data-cfg-tab="integracoes">Integrações</button>
         <button class="tab-btn ${this._tab === 'seguranca' ? 'active' : ''}" data-cfg-tab="seguranca">Segurança</button>
@@ -32,6 +33,7 @@ const ConfiguracoesModule = {
 
   _renderTab(cfg) {
     if (this._tab === 'metas')       return this._renderMetas(cfg);
+    if (this._tab === 'entrega')     return this._renderEntrega(cfg);
     if (this._tab === 'horario')     return this._renderHorario(cfg);
     if (this._tab === 'integracoes') return this._renderIntegracoes(cfg);
     if (this._tab === 'seguranca')   return this._renderSeguranca();
@@ -136,6 +138,71 @@ const ConfiguracoesModule = {
         <button class="btn btn-primary" id="btn-salvar-metas">Salvar Metas</button>
       </div>
     `;
+  },
+
+  _renderEntrega(cfg) {
+    const f = cfg.frete || {};
+    const zonas = f.zonas || [];
+    return `
+      <div style="max-width:560px;display:flex;flex-direction:column;gap:var(--sp-4)">
+        <div style="background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:var(--sp-6)">
+          <h3 style="font-family:var(--font-display);letter-spacing:.04em;margin-bottom:var(--sp-5)">Frete</h3>
+          <div class="form-group">
+            <label class="form-label">Frete Padrão (R$)</label>
+            <input type="number" class="form-input" id="cfg-frete-padrao" value="${f.padrao ?? 8}" min="0" step="0.50" style="max-width:160px">
+            <small style="color:var(--text-muted);font-size:var(--text-xs)">Valor usado quando nenhuma zona específica é encontrada</small>
+          </div>
+
+          <h4 style="font-weight:700;margin:var(--sp-5) 0 var(--sp-3)">Zonas de Entrega por CEP</h4>
+          <p style="font-size:var(--text-sm);color:var(--text-muted);margin-bottom:var(--sp-4)">
+            Configure frete por prefixo de CEP. Ex.: prefixo "0410" cobre todos os CEPs que começam com 0410.
+          </p>
+          <div id="cfg-zonas-list" style="display:flex;flex-direction:column;gap:var(--sp-2);margin-bottom:var(--sp-3)">
+            ${zonas.length ? zonas.map((z, i) => `
+              <div class="zona-row" style="display:flex;align-items:center;gap:var(--sp-2)">
+                <input type="text" class="form-input zona-nome" placeholder="Nome da zona" value="${Utils.escapeHtml(z.nome || '')}" style="flex:2">
+                <input type="text" class="form-input zona-prefixo" placeholder="Prefixo CEP (ex: 0410)" value="${Utils.escapeHtml(z.prefixo || '')}" style="flex:2" maxlength="8">
+                <input type="number" class="form-input zona-valor" placeholder="R$" value="${z.valor ?? ''}" min="0" step="0.50" style="flex:1">
+                <button type="button" class="btn btn-ghost btn-rm-zona" style="color:var(--color-danger);flex-shrink:0">✕</button>
+              </div>
+            `).join('') : '<p style="font-size:var(--text-sm);color:var(--text-muted)">Nenhuma zona configurada.</p>'}
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-add-zona" style="font-size:var(--text-sm)">+ Adicionar Zona</button>
+        </div>
+        <button class="btn btn-primary" id="btn-salvar-entrega">Salvar Entrega</button>
+      </div>
+    `;
+  },
+
+  _salvarEntrega() {
+    const cfg   = Stores.config.get();
+    const zonas = [];
+    document.querySelectorAll('#cfg-zonas-list .zona-row').forEach(row => {
+      const nome     = row.querySelector('.zona-nome')?.value?.trim()    || '';
+      const prefixo  = row.querySelector('.zona-prefixo')?.value?.trim() || '';
+      const valor    = parseFloat(row.querySelector('.zona-valor')?.value  || 0);
+      if (prefixo) zonas.push({ nome, prefixo, valor: isNaN(valor) ? 0 : valor });
+    });
+    cfg.frete = { padrao: parseFloat(document.getElementById('cfg-frete-padrao')?.value || 8), zonas };
+    Stores.config.set(cfg);
+    UI.toast('Configurações de entrega salvas.', 'success');
+  },
+
+  _adicionarZona() {
+    const list = document.getElementById('cfg-zonas-list');
+    if (!list) return;
+    const pEl = list.querySelector('p');
+    if (pEl) pEl.remove();
+    const div = document.createElement('div');
+    div.className = 'zona-row';
+    div.style.cssText = 'display:flex;align-items:center;gap:var(--sp-2)';
+    div.innerHTML = `
+      <input type="text" class="form-input zona-nome" placeholder="Nome da zona" style="flex:2">
+      <input type="text" class="form-input zona-prefixo" placeholder="Prefixo CEP (ex: 0410)" style="flex:2" maxlength="8">
+      <input type="number" class="form-input zona-valor" placeholder="R$" min="0" step="0.50" style="flex:1">
+      <button type="button" class="btn btn-ghost btn-rm-zona" style="color:var(--color-danger);flex-shrink:0">✕</button>
+    `;
+    list.appendChild(div);
   },
 
   _renderHorario(cfg) {
@@ -247,6 +314,9 @@ const ConfiguracoesModule = {
 
       if (e.target.closest('#btn-salvar-restaurante')) { this._salvarRestaurante(); return; }
       if (e.target.closest('#btn-salvar-metas'))       { this._salvarMetas(); return; }
+      if (e.target.closest('#btn-salvar-entrega'))     { this._salvarEntrega(); return; }
+      if (e.target.closest('#btn-add-zona'))           { this._adicionarZona(); return; }
+      if (e.target.closest('.btn-rm-zona'))            { e.target.closest('.zona-row').remove(); return; }
       if (e.target.closest('#btn-salvar-horario'))     { this._salvarHorario(); return; }
       if (e.target.closest('#btn-salvar-senha'))       { this._salvarSenha(); return; }
       if (e.target.closest('#btn-reset-dados')) {

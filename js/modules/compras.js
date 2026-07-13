@@ -75,6 +75,7 @@ const ComprasModule = {
           ${STATUS_COMPRA.slice(0,-1).map(s => `<option value="${s}" ${this._filtroStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
         </select>
         <span style="flex:1"></span>
+        <button class="btn btn-ghost" id="btn-importar-cupom">📷 Importar Cupom</button>
         <button class="btn btn-ghost" id="btn-gerar-automatico">⚡ Gerar Automático</button>
         <button class="btn btn-primary" id="btn-nova-compra">+ Nova Compra</button>
       </div>
@@ -154,6 +155,7 @@ const ComprasModule = {
       if (tab) { this._tab = tab.dataset.cmpTab; this._render(); this._bindEvents(); return; }
 
       if (e.target.closest('#btn-nova-compra'))      { this._abrirModalNovaCompra(); return; }
+      if (e.target.closest('#btn-importar-cupom'))  { this._importarCupom(); return; }
       if (e.target.closest('#btn-gerar-automatico')) { this._gerarSolicitacoesAutomaticas(true); this._render(); this._bindEvents(); return; }
 
       const action = e.target.closest('[data-cmp-action]');
@@ -369,5 +371,188 @@ const ComprasModule = {
     // Start with one empty item
     if (ings.length) { itens = [{ ingredienteId: ings[0].id, nome: ings[0].nome, quantidade: 1, unidade: ings[0].unidade, custoUnitario: ings[0].custoUnitario }]; }
     setTimeout(() => renderItens(), 50);
+  },
+
+  _importarCupom() {
+    if (typeof OcrService === 'undefined') {
+      UI.toast('OCR não disponível nesta página.', 'error');
+      return;
+    }
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (file) this._processarCupomOCR(file);
+    };
+    input.click();
+  },
+
+  async _processarCupomOCR(file) {
+    // Overlay de progresso
+    const overlay = document.createElement('div');
+    overlay.id = 'ocr-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#fff;font-family:var(--font-body)';
+    overlay.innerHTML = `
+      <div style="font-size:18px;font-weight:600">Lendo cupom fiscal…</div>
+      <div style="width:260px;height:8px;background:rgba(255,255,255,.2);border-radius:4px;overflow:hidden">
+        <div id="ocr-bar" style="height:100%;width:0%;background:var(--color-brand);transition:width .2s"></div>
+      </div>
+      <div id="ocr-pct" style="font-size:13px;color:rgba(255,255,255,.7)">0%</div>
+    `;
+    document.body.appendChild(overlay);
+
+    try {
+      const texto = await OcrService.processar(file, pct => {
+        const bar = document.getElementById('ocr-bar');
+        const pctEl = document.getElementById('ocr-pct');
+        if (bar) bar.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      });
+      const { itens, total } = OcrService.parsearCupom(texto);
+      document.body.removeChild(overlay);
+
+      if (!itens.length) {
+        UI.toast('Não foi possível identificar itens no cupom. Tente uma foto mais nítida.', 'warning');
+        return;
+      }
+
+      // Auto-match ingredientes
+      const ings = Stores.ingredientes.get().filter(i => i.ativo);
+      itens.forEach(it => {
+        const match = OcrService.matchIngrediente(it.nome, ings);
+        if (match) it.ingredienteId = match.id;
+      });
+
+      this._mostrarRevisaoCupom(itens, total);
+    } catch (err) {
+      if (document.getElementById('ocr-overlay')) document.body.removeChild(overlay);
+      UI.toast('Erro ao processar imagem: ' + (err.message || 'desconhecido'), 'error');
+    }
+  },
+
+  _mostrarRevisaoCupom(itens, total) {
+    const ings = Stores.ingredientes.get().filter(i => i.ativo);
+    const fornecedores = Stores.fornecedores.get().filter(f => f.ativo);
+
+    const optsIng = `<option value="">— Não vincular —</option>` +
+      ings.map(i => `<option value="${i.id}">${Utils.escapeHtml(i.nome)}</option>`).join('');
+
+    const renderLinhas = (its) => its.map((it, idx) => `
+      <tr>
+        <td style="padding:4px 6px">
+          <input type="text" class="form-input" style="font-size:var(--text-sm)" data-ocr-nome="${idx}" value="${Utils.escapeHtml(it.nome)}">
+        </td>
+        <td style="padding:4px 6px">
+          <input type="number" class="form-input" style="font-size:var(--text-sm);width:80px" data-ocr-qty="${idx}" value="${it.quantidade}" min="0.001" step="0.001">
+        </td>
+        <td style="padding:4px 6px">
+          <input type="text" class="form-input" style="font-size:var(--text-sm);width:60px" data-ocr-un="${idx}" value="${it.unidade}">
+        </td>
+        <td style="padding:4px 6px">
+          <input type="number" class="form-input" style="font-size:var(--text-sm);width:90px" data-ocr-cu="${idx}" value="${it.custoUnitario}" min="0" step="0.01">
+        </td>
+        <td style="padding:4px 6px">
+          <select class="form-input" style="font-size:var(--text-sm)" data-ocr-ing="${idx}">
+            ${optsIng.replace(`value="${it.ingredienteId}"`, `value="${it.ingredienteId}" selected`)}
+          </select>
+        </td>
+        <td style="padding:4px 6px;text-align:center">
+          <button type="button" class="btn-icon btn-icon--danger" data-ocr-del="${idx}">✕</button>
+        </td>
+      </tr>
+    `).join('');
+
+    UI.openModal({
+      title: '📷 Revisão do Cupom Fiscal',
+      size: 'wide',
+      body: `
+        <p style="color:var(--text-muted);font-size:var(--text-sm);margin-bottom:var(--sp-3)">
+          Confira e corrija os itens detectados antes de importar. Vincule cada item a um ingrediente do estoque.
+        </p>
+        <div style="overflow-x:auto;margin-bottom:var(--sp-4)">
+          <table class="data-table" id="ocr-table">
+            <thead>
+              <tr>
+                <th>Descrição</th><th>Qtd</th><th>Un</th><th>R$/un</th><th>Ingrediente</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="ocr-tbody">
+              ${renderLinhas(itens)}
+            </tbody>
+          </table>
+        </div>
+        ${total > 0 ? `<p style="text-align:right;font-weight:700;margin-bottom:var(--sp-3)">Total do cupom: ${Utils.currency(total)}</p>` : ''}
+        <div class="form-row" style="margin-bottom:var(--sp-3)">
+          <div class="form-group" style="flex:2">
+            <label class="form-label">Fornecedor</label>
+            <select class="form-input" id="ocr-forn">
+              <option value="">Selecionar…</option>
+              ${fornecedores.map(f => `<option value="${f.id}">${Utils.escapeHtml(f.nome)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data da Compra</label>
+            <input type="date" class="form-input" id="ocr-data" value="${new Date().toISOString().slice(0,10)}">
+          </div>
+        </div>
+      `,
+      onConfirm: () => {
+        // Coleta dados revisados da tabela
+        const tbody = document.getElementById('ocr-tbody');
+        if (!tbody) return;
+        const linhas = tbody.querySelectorAll('tr');
+        const itensFinal = [];
+        linhas.forEach((tr, idx) => {
+          const nome   = tr.querySelector(`[data-ocr-nome="${idx}"]`)?.value?.trim() || '';
+          const qty    = parseFloat(tr.querySelector(`[data-ocr-qty="${idx}"]`)?.value || 0);
+          const un     = tr.querySelector(`[data-ocr-un="${idx}"]`)?.value?.trim() || 'un';
+          const cu     = parseFloat(tr.querySelector(`[data-ocr-cu="${idx}"]`)?.value || 0);
+          const ingId  = tr.querySelector(`[data-ocr-ing="${idx}"]`)?.value || '';
+          if (nome && qty > 0) {
+            itensFinal.push({ ingredienteId: ingId, nome, quantidade: qty, unidade: un, custoUnitario: cu, subtotal: qty * cu });
+          }
+        });
+
+        if (!itensFinal.length) { UI.toast('Nenhum item válido para importar.', 'error'); return; }
+
+        const fornId   = document.getElementById('ocr-forn')?.value || '';
+        const forn     = fornecedores.find(f => f.id === fornId);
+        const data     = document.getElementById('ocr-data')?.value || new Date().toISOString().slice(0,10);
+        const totalFinal = itensFinal.reduce((s, i) => s + i.subtotal, 0);
+
+        const compras  = Stores.compras.get();
+        const maxNum   = compras.reduce((m, c) => Math.max(m, c.numeroPedidoCompra || 0), 0);
+        const novaCompra = {
+          id: `cmp-ocr-${Date.now()}`,
+          numeroPedidoCompra: maxNum + 1,
+          fornecedorId: fornId,
+          fornecedorNome: forn?.nome || 'Importado via OCR',
+          status: 'Pedido',
+          tipo: 'manual',
+          itens: itensFinal,
+          total: totalFinal,
+          observacoes: 'Importado via OCR (cupom fiscal)',
+          dataCompra: data,
+          dataRecebimento: '',
+          notaFiscal: '',
+          formaPagamento: 'À vista',
+        };
+        compras.unshift(novaCompra);
+        Stores.compras.set(compras);
+
+        // Confirmar recebimento imediatamente (atualiza estoque + financeiro)
+        this._confirmarRecebimento(novaCompra);
+        UI.toast(`${itensFinal.length} item(ns) importados do cupom. Estoque atualizado!`, 'success');
+      },
+    });
+
+    // Bind delete em linhas da tabela após renderizar
+    setTimeout(() => {
+      document.getElementById('ocr-tbody')?.addEventListener('click', e => {
+        const btn = e.target.closest('[data-ocr-del]');
+        if (btn) btn.closest('tr').remove();
+      });
+    }, 50);
   },
 };

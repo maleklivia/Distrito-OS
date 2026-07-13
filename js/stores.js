@@ -391,6 +391,7 @@ const SEED_CONFIG = {
     sabado: '12:00 – 00:00', domingo: '12:00 – 22:00',
   },
   integracoes: { whatsapp: false, pix: false, impressora: false, ifood: false, ocr: false },
+  frete: { padrao: 8, zonas: [] },
 };
 
 /* ── Stores ──────────────────────────────────────────────────── */
