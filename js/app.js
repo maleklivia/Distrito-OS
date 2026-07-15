@@ -80,6 +80,7 @@ const Modules = {
       this._renderRecentOrders(state);
       this._renderTopProducts(state);
       this._renderStockAlerts(state);
+      this._renderAlertasCusto();
     },
 
     _calcKpis(state) {
@@ -240,6 +241,69 @@ const Modules = {
           <span class="product-rank__sold">${p.sold} vendas</span>
         </div>
       `).join('');
+    },
+
+    _renderAlertasCusto() {
+      const el = document.getElementById('custo-alerts');
+      const panel = document.getElementById('custo-alerts-panel');
+      if (!el || typeof Stores === 'undefined') return;
+
+      const ings    = Stores.ingredientes.get();
+      const fichas  = Stores.fichas.get();
+      const produtos = Stores.produtos.get();
+
+      const comAlta   = ings.filter(i => i._alertaCusto);
+      const comStreak = ings.filter(i => (i._streakBarata || 0) >= 3);
+
+      if (!comAlta.length && !comStreak.length) {
+        if (panel) panel.style.display = 'none';
+        return;
+      }
+
+      if (panel) panel.style.display = '';
+
+      const calcProdutosAfetados = (ingId) => {
+        return fichas
+          .filter(f => f.itens.some(i => i.ingredienteId === ingId))
+          .map(f => produtos.find(p => p.id === f.produtoId)?.nome)
+          .filter(Boolean);
+      };
+
+      const linhasAlta = comAlta.map(ing => {
+        const a = ing._alertaCusto;
+        const prods = calcProdutosAfetados(ing.id);
+        return `
+          <div class="stock-alert" style="border-left:3px solid var(--color-danger);padding-left:8px">
+            <span class="stock-alert__icon" style="color:var(--color-danger)">🚨</span>
+            <div class="stock-alert__info">
+              <div class="stock-alert__item" style="font-weight:700">${Utils.escapeHtml(ing.nome)}</div>
+              <div class="stock-alert__qty">
+                +${Math.round(a.variacao * 100)}% desde ${Utils.formatShortDate(a.data)}
+                · ${Utils.currency(a.custoAnterior)} → ${Utils.currency(a.custoNovo)}/${Utils.escapeHtml(ing.unidade)}
+              </div>
+              ${prods.length ? `<div style="font-size:var(--text-xs);color:var(--text-muted)">Afeta: ${prods.join(', ')}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      const linhasStreak = comStreak.map(ing => {
+        const prods = calcProdutosAfetados(ing.id);
+        return `
+          <div class="stock-alert" style="border-left:3px solid var(--color-success);padding-left:8px">
+            <span class="stock-alert__icon" style="color:var(--color-success)">💡</span>
+            <div class="stock-alert__info">
+              <div class="stock-alert__item">${Utils.escapeHtml(ing.nome)}</div>
+              <div class="stock-alert__qty">
+                ${ing._streakBarata}x mais barato que o custo cadastrado (${Utils.currency(ing.custoUnitario)}/${Utils.escapeHtml(ing.unidade)})
+              </div>
+              ${prods.length ? `<div style="font-size:var(--text-xs);color:var(--text-muted)">Pode reduzir CMV de: ${prods.join(', ')}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      el.innerHTML = [...linhasAlta, ...linhasStreak].join('');
     },
 
     _renderStockAlerts(state) {

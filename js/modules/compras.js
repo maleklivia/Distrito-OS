@@ -186,22 +186,50 @@ const ComprasModule = {
     compra.status = 'Recebido';
     compra.dataRecebimento = new Date().toISOString().slice(0, 10);
 
-    // Atualiza estoque e custo de cada ingrediente
-    const ings = Stores.ingredientes.get();
-    const movs = Stores.movimentacoes.get();
+    const ings    = Stores.ingredientes.get();
+    const movs    = Stores.movimentacoes.get();
+    const alertas = []; // itens com alta ≥ 20%
+
     for (const item of compra.itens) {
       const ing = ings.find(i => i.id === item.ingredienteId);
+
       if (ing) {
+        const custoAntigo = ing.custoUnitario;
+        const custoNovo   = item.custoUnitario;
+        const variacao    = custoAntigo > 0 ? (custoNovo - custoAntigo) / custoAntigo : 0;
+
+        if (custoNovo < custoAntigo) {
+          // Preço caiu: NÃO atualiza custo, registra streak de compras baratas
+          ing._streakBarata = (ing._streakBarata || 0) + 1;
+        } else {
+          // Preço igual ou subiu: atualiza custo, reseta streak
+          ing._streakBarata = 0;
+          ing.custoUnitario = custoNovo;
+
+          if (variacao >= 0.20) {
+            // Alta significativa: salva alerta persistente no ingrediente
+            ing._alertaCusto = {
+              custoAnterior: custoAntigo,
+              custoNovo,
+              variacao,
+              data: compra.dataRecebimento,
+            };
+            alertas.push({ ing: { ...ing, custoUnitario: custoAntigo }, custoAntigo, custoNovo, variacao, unidade: ing.unidade });
+          } else if (ing._alertaCusto && custoNovo <= ing._alertaCusto.custoAnterior * 1.15) {
+            // Preço voltou a nível aceitável: remove alerta
+            delete ing._alertaCusto;
+          }
+        }
+
         ing.estoqueAtual += item.quantidade;
-        ing.custoUnitario = item.custoUnitario; // Atualiza custo
       }
+
       const maxMovId = movs.reduce((m, v) => Math.max(m, parseInt(v.id?.replace('mov-', '') || 0)), 0);
       movs.unshift({ id: `mov-${String(maxMovId + 1).padStart(3, '0')}`, tipo: 'entrada', ingredienteId: item.ingredienteId, ingredienteNome: item.nome, quantidade: item.quantidade, unidade: item.unidade, motivo: 'compra', referencia: compra.id, data: compra.dataRecebimento, usuario: 'admin' });
     }
+
     Stores.ingredientes.set(ings);
     Stores.movimentacoes.set(movs);
-
-    // Recalcula CMV de fichas técnicas vinculadas
     this._recalcularCMV(ings);
 
     // Registra despesa no financeiro
@@ -216,9 +244,99 @@ const ComprasModule = {
     Stores.compras.set(compras);
 
     if (typeof EventBus !== 'undefined') EventBus.emit('compra.recebida', { compraId: compra.id, fornecedor: compra.fornecedorNome, total: compra.total });
-    UI.toast(`Compra #${compra.numeroPedidoCompra} recebida! Estoque e financeiro atualizados.`, 'success');
+
+    if (alertas.length) {
+      this._mostrarAlertaCusto(alertas, compra.numeroPedidoCompra);
+    } else {
+      UI.toast(`Compra #${compra.numeroPedidoCompra} recebida! Estoque e financeiro atualizados.`, 'success');
+    }
+
     this._render();
     this._bindEvents();
+  },
+
+  _mostrarAlertaCusto(alertas, numPedido) {
+    const fichas   = Stores.fichas.get();
+    const produtos = Stores.produtos.get();
+    const ings     = Stores.ingredientes.get();
+
+    const secoes = alertas.map(a => {
+      // Produtos afetados via fichas técnicas
+      const fichasAfetadas = fichas.filter(f => f.itens.some(i => i.ingredienteId === a.ing.id));
+      const produtosAfetados = fichasAfetadas.map(f => {
+        const produto = produtos.find(p => p.id === f.produtoId);
+        if (!produto) return null;
+        let custoAntes = 0, custoDepois = 0;
+        for (const fi of f.itens) {
+          const ing = ings.find(i => i.id === fi.ingredienteId);
+          if (!ing) continue;
+          const fator = (typeof convertUnits === 'function' ? convertUnits(fi.unidade, ing.unidade) : null) ?? 1;
+          const custoBase = fi.ingredienteId === a.ing.id ? a.custoAntigo : ing.custoUnitario;
+          const custoAtual = fi.ingredienteId === a.ing.id ? a.custoNovo  : ing.custoUnitario;
+          custoAntes  += fi.quantidade * fator * custoBase;
+          custoDepois += fi.quantidade * fator * custoAtual;
+        }
+        const pv = produto.precoVenda || 0;
+        return {
+          nome:        produto.nome,
+          precoVenda:  pv,
+          custoAntes,
+          custoDepois,
+          margemAntes:  pv > 0 ? (1 - custoAntes  / pv) * 100 : 0,
+          margemDepois: pv > 0 ? (1 - custoDepois / pv) * 100 : 0,
+        };
+      }).filter(Boolean);
+
+      const tabelaProdutos = produtosAfetados.length ? `
+        <div style="overflow-x:auto;margin-top:var(--sp-3)">
+          <table class="data-table" style="font-size:var(--text-sm)">
+            <thead>
+              <tr><th>Produto</th><th style="text-align:right">Preço Venda</th><th style="text-align:right">Custo Antes</th><th style="text-align:right">Custo Agora</th><th style="text-align:right">Margem Antes</th><th style="text-align:right">Margem Agora</th></tr>
+            </thead>
+            <tbody>
+              ${produtosAfetados.map(p => `
+                <tr>
+                  <td style="font-weight:600">${Utils.escapeHtml(p.nome)}</td>
+                  <td style="text-align:right">${Utils.currency(p.precoVenda)}</td>
+                  <td style="text-align:right;color:var(--text-muted)">${Utils.currency(p.custoAntes)}</td>
+                  <td style="text-align:right;font-weight:700;color:var(--color-danger)">${Utils.currency(p.custoDepois)}</td>
+                  <td style="text-align:right">${p.margemAntes.toFixed(1)}%</td>
+                  <td style="text-align:right;font-weight:700;color:${p.margemDepois < 40 ? 'var(--color-danger)' : 'var(--color-success)'}">${p.margemDepois.toFixed(1)}%</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : `<p style="font-size:var(--text-sm);color:var(--text-muted);margin-top:var(--sp-2)">Nenhuma ficha técnica usa este insumo.</p>`;
+
+      return `
+        <div style="background:var(--bg-surface);border:1px solid var(--color-danger);border-radius:var(--radius-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-4)">
+          <div style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-2)">
+            <span style="font-size:20px">🚨</span>
+            <span style="font-weight:700;font-size:var(--text-lg)">${Utils.escapeHtml(a.ing.nome)}</span>
+            <span class="badge badge-danger">+${Math.round(a.variacao * 100)}%</span>
+            <span style="color:var(--text-muted);font-size:var(--text-sm)">${Utils.currency(a.custoAntigo)}/${a.unidade} → <strong>${Utils.currency(a.custoNovo)}/${a.unidade}</strong></span>
+          </div>
+          ${tabelaProdutos}
+        </div>
+      `;
+    });
+
+    UI.openModal({
+      title: '🚨 Alerta de Custo — Alta Significativa',
+      size: 'wide',
+      body: `
+        <p style="color:var(--text-muted);font-size:var(--text-sm);margin-bottom:var(--sp-4)">
+          A compra <strong>#${numPedido}</strong> registrou insumos com aumento ≥ 20%. Confira o impacto nas margens e avalie se precisa reajustar preços.
+        </p>
+        ${secoes.join('')}
+        <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--sp-2)">
+          Este alerta também aparece no Dashboard enquanto o custo estiver elevado.
+        </p>
+      `,
+      confirmLabel: 'Entendido',
+      onConfirm: () => {},
+    });
   },
 
   _recalcularCMV(ings) {
