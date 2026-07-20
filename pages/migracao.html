@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migração segura — Petisbar Teodoro</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/modules.css">
+</head>
+<body class="app-body">
+  <main style="max-width:760px;margin:40px auto;padding:var(--sp-5)">
+    <div class="panel" style="padding:var(--sp-6)">
+      <h1 style="font-family:var(--font-display);font-size:var(--text-3xl);margin-bottom:var(--sp-2)">Migrar dados do navegador</h1>
+      <p style="color:var(--text-muted);line-height:1.6;margin-bottom:var(--sp-5)">
+        Use este assistente somente depois que a API estiver instalada na VPS. Ele copia os dados locais para o PostgreSQL, sem apagá-los deste navegador.
+      </p>
+
+      <div id="migration-preview" style="margin-bottom:var(--sp-5)"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="migration-api">Endereço da API</label>
+        <input class="form-input" id="migration-api" type="url" placeholder="https://sistema.seudominio.com.br/api/v1">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="migration-email">E-mail do administrador</label>
+          <input class="form-input" id="migration-email" type="email" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="migration-password">Senha</label>
+          <input class="form-input" id="migration-password" type="password" autocomplete="current-password">
+        </div>
+      </div>
+      <div style="display:flex;gap:var(--sp-3);align-items:center">
+        <button class="btn btn-primary" id="migration-start">Entrar e importar</button>
+        <a class="btn btn-ghost" href="configuracoes.html">Voltar</a>
+      </div>
+      <div id="migration-status" role="status" style="margin-top:var(--sp-4)"></div>
+    </div>
+  </main>
+  <script src="../js/migration-client.js"></script>
+</body>
+</html>

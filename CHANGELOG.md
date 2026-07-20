@@ -7,6 +7,13 @@ Formato: [Semantic Versioning](https://semver.org/lang/pt-BR/)
 
 ## [Unreleased] — 2026-07-20
 
+- Criada fundação do backend com Node.js, Fastify e API versionada.
+- Criado esquema PostgreSQL para usuários, permissões, catálogo, estoque, pedidos, compras, financeiro e auditoria.
+- Implementados login com Argon2id, sessões seguras, limitação de tentativas e cinco perfis de acesso.
+- Adicionada importação idempotente dos dados existentes no navegador, com preservação integral do lote original.
+- Adicionados Docker Compose, Caddy com HTTPS, scripts de migration, administrador inicial e backup PostgreSQL.
+- Adicionado assistente visual de migração em `pages/migracao.html`.
+
 - Removida a tela de login inicial; a raiz do sistema agora abre diretamente o dashboard.
 - Removidos o bloqueio de autenticação e os controles de logout da interface.
 - Padronizados todos os drinks preparados em copos de 500ml, com fichas técnicas e CMV recalculados.
