@@ -284,6 +284,7 @@ const ConfiguracoesModule = {
             <div>○ Backup automático e teste de restauração</div>
             <div>○ Política de privacidade e tratamento de dados de clientes</div>
           </div>
+          <a class="btn btn-primary" href="migracao.html" style="margin-top:var(--sp-4)">Abrir assistente de migração</a>
         </div>
 
         <div style="background:var(--bg-surface);border:1px solid var(--border-default);border-radius:var(--radius-lg);padding:var(--sp-5);margin-top:var(--sp-4)">

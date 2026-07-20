@@ -10,6 +10,8 @@ Petisbar Teodoro é um sistema de gestão operacional desenvolvido para restaura
 
 > **Estado atual:** versão de configuração e testes em um único navegador. Antes do uso operacional online, ainda são necessários backend, autenticação, banco de dados, backup e implantação segura. Consulte [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
+A fundação do modo servidor está em [`server/`](server/) e [`database/`](database/). Consulte [docs/BACKEND.md](docs/BACKEND.md) para instalação, segurança e migração.
+
 ---
 
 ## Tecnologias

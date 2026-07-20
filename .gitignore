@@ -1,0 +1,7 @@
+.env
+server/.env
+server/node_modules/
+node_modules/
+backups/
+*.log
+coverage/
