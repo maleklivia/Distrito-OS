@@ -32,7 +32,18 @@
       <form id="checkout-form" class="checkout-form">
         <div class="checkout-grid"><label>Seu nome<input name="name" required minlength="2" autocomplete="name"></label><label>WhatsApp<input name="phone" required minlength="8" inputmode="tel" autocomplete="tel"></label></div>
         <fieldset><legend>Como deseja receber?</legend><div class="choice-row"><label><input type="radio" name="fulfillment" value="retirada" checked> Retirada</label><label><input type="radio" name="fulfillment" value="entrega"> Entrega</label></div></fieldset>
-        <div id="address-fields" class="address-fields hidden"><div class="checkout-grid"><label class="wide">Rua<input name="street" autocomplete="street-address"></label><label>Número<input name="number" inputmode="numeric"></label><label>Bairro<input name="district"></label></div><label>Complemento ou referência<input name="complement"></label></div>
+        <div id="address-fields" class="address-fields hidden">
+          <strong class="address-title">Endereço de entrega</strong>
+          <div class="checkout-grid">
+            <label>CEP<input name="postalCode" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" data-delivery-required></label>
+            <label>Cidade<input name="city" autocomplete="address-level2" data-delivery-required></label>
+            <label class="wide">Rua ou avenida<input name="street" autocomplete="address-line1" data-delivery-required></label>
+            <label>Número<input name="number" inputmode="numeric" data-delivery-required></label>
+            <label>Bairro<input name="district" autocomplete="address-level3" data-delivery-required></label>
+            <label class="wide">Complemento<input name="complement" autocomplete="address-line2" placeholder="Casa, bloco, apartamento…"></label>
+            <label class="wide">Ponto de referência<input name="reference" placeholder="Ex.: próximo à praça"></label>
+          </div>
+        </div>
         <label>Forma de pagamento<select name="payment"><option>Pix</option><option>Dinheiro</option><option>Cartão na entrega</option></select></label>
         <label>Observações<textarea name="notes" rows="2" maxlength="500" placeholder="Ex.: sem gelo"></textarea></label>
         <label id="adult-field" class="adult-check hidden"><input type="checkbox" name="adultConfirmed"> Confirmo que tenho 18 anos ou mais.</label>
@@ -44,6 +55,6 @@
     </section>
   </div>
   <div id="toast" class="store-toast" role="status" aria-live="polite"></div>
-  <script src="./js/cardapio.js?v=20260721-2"></script>
+  <script src="./js/cardapio.js?v=20260721-3"></script>
 </body>
 </html>

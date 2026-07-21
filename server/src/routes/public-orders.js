@@ -9,6 +9,8 @@ const orderSchema = z.object({
   }),
   fulfillmentType: z.enum(['retirada', 'entrega']),
   address: z.object({
+    postalCode: z.string().trim().max(12).default(''),
+    city: z.string().trim().max(100).default(''),
     street: z.string().trim().max(160).default(''),
     number: z.string().trim().max(30).default(''),
     district: z.string().trim().max(100).default(''),
@@ -43,7 +45,7 @@ export default async function publicOrderRoutes(app) {
     if (!parsed.success) return reply.code(400).send({ error: 'validation_error', details: parsed.error.flatten() });
     const input = parsed.data;
     if (input.website) return reply.code(400).send({ error: 'invalid_request' });
-    if (input.fulfillmentType === 'entrega' && (!input.address.street || !input.address.number || !input.address.district)) {
+    if (input.fulfillmentType === 'entrega' && (!input.address.postalCode || !input.address.city || !input.address.street || !input.address.number || !input.address.district)) {
       return reply.code(400).send({ error: 'delivery_address_required' });
     }
 
