@@ -155,9 +155,11 @@ const SEED_PRODUTOS = [
   { id: 'p-ene002', sku: 'ENE002', nome: 'Monster Energy 473ml',       categoria: 'Energéticos',   descricao: 'Monster Energy lata 473ml',                              precoVenda: 12.00, custoCompra: 6.00, ativo: true, tempoPreparo: 1, estoqueAtual: 24, estoqueMinimo: 12, dataCadastro: '2026-07-01' },
   /* ── Açaí (5) ──────────────────────────────────────────────── */
   { id: 'p-aca001', sku: 'ACA001', nome: 'Batidinha de Açaí 300ml',    categoria: 'Açaí',          descricao: 'Açaí batido e servido em garrafinha de 300ml',           precoVenda: 15.00, custoCompra: 8.00,  ativo: true,  tempoPreparo: 5, estoqueAtual: 20, estoqueMinimo: 5, dataCadastro: '2026-07-01' },
-  /* ── Petiscos (5) ───────────────────────────────────────────── */
-  { id: 'p-pet001', sku: 'PET001', nome: 'Batata Frita',                         categoria: 'Petiscos',      descricao: 'Porção de batata frita sequinha e crocante',                 precoVenda: 24.90, custoCompra: 7.40,  ativo: true, tempoPreparo: 12, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
-  { id: 'p-pet002', sku: 'PET002', nome: 'Batata Frita com Cheddar e Bacon',      categoria: 'Petiscos',      descricao: 'Batata frita com cheddar cremoso e bacon crocante',           precoVenda: 39.90, custoCompra: 13.20, ativo: true, tempoPreparo: 14, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
+  /* ── Petiscos (7) ───────────────────────────────────────────── */
+  { id: 'p-pet001', sku: 'PET001-P', nome: 'Batata Frita P — 300g',               categoria: 'Petiscos', descricao: 'Porção individual com 300g de batata frita sequinha e crocante', precoVenda: 17.90, precoIfood: 24.90, custoCompra: 4.08, ativo: true, tempoPreparo: 10, peso: 300, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
+  { id: 'p-pet006', sku: 'PET001-G', nome: 'Batata Frita G — 500g',               categoria: 'Petiscos', descricao: 'Porção grande com 500g de batata frita, ideal para compartilhar', precoVenda: 24.90, precoIfood: 34.90, custoCompra: 6.78, ativo: true, tempoPreparo: 12, peso: 500, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-23' },
+  { id: 'p-pet002', sku: 'PET002-P', nome: 'Batata com Cheddar e Bacon P — 400g', categoria: 'Petiscos', descricao: '300g de batata, 60g de cheddar e 40g de bacon; porção individual', precoVenda: 27.90, precoIfood: 37.90, custoCompra: 7.40, ativo: true, tempoPreparo: 12, peso: 400, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
+  { id: 'p-pet007', sku: 'PET002-G', nome: 'Batata com Cheddar e Bacon G — 700g', categoria: 'Petiscos', descricao: '500g de batata, 120g de cheddar e 80g de bacon; ideal para compartilhar', precoVenda: 39.90, precoIfood: 54.90, custoCompra: 13.40, ativo: true, tempoPreparo: 14, peso: 700, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-23' },
   { id: 'p-pet003', sku: 'PET003', nome: 'Calabresa Frita',                       categoria: 'Petiscos',      descricao: 'Porção de calabresa frita acebolada',                         precoVenda: 36.90, custoCompra: 14.60, ativo: true, tempoPreparo: 12, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
   { id: 'p-pet004', sku: 'PET004', nome: 'Frango a Passarinho',                   categoria: 'Petiscos',      descricao: 'Frango a passarinho temperado e frito na hora',               precoVenda: 44.90, custoCompra: 17.80, ativo: true, tempoPreparo: 18, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
   { id: 'p-pet005', sku: 'PET005', nome: 'Isca de Carne',                         categoria: 'Petiscos',      descricao: 'Iscas de carne fritas para compartilhar',                     precoVenda: 49.90, custoCompra: 21.40, ativo: true, tempoPreparo: 16, estoqueAtual: 0, estoqueMinimo: 0, dataCadastro: '2026-07-22' },
@@ -197,7 +199,7 @@ function getDefaultProductPhoto(product) {
 
 SEED_PRODUTOS.forEach(product => {
   product.foto = getDefaultProductPhoto(product);
-  product.precoIfood = Math.ceil((product.precoVenda / 0.738) * 100) / 100;
+  product.precoIfood ??= Math.ceil((product.precoVenda / 0.738) * 100) / 100;
   product.ativoIfood = false;
   if (product.estoqueAtual !== null && product.estoqueAtual !== undefined) {
     product.estoqueAtual = 0;
@@ -306,6 +308,14 @@ const SEED_FICHAS = [
   {
     id: 'f-pet001', produtoId: 'p-pet001', rendimento: 1,
     itens: [
+      { ingredienteId: 'i-016', quantidade: 300, unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 50,  unidade: 'ml' },
+      { ingredienteId: 'i-023', quantidade: 3,   unidade: 'g'  },
+    ],
+  },
+  {
+    id: 'f-pet006', produtoId: 'p-pet006', rendimento: 1,
+    itens: [
       { ingredienteId: 'i-016', quantidade: 500, unidade: 'g'  },
       { ingredienteId: 'i-022', quantidade: 80,  unidade: 'ml' },
       { ingredienteId: 'i-023', quantidade: 5,   unidade: 'g'  },
@@ -313,6 +323,16 @@ const SEED_FICHAS = [
   },
   {
     id: 'f-pet002', produtoId: 'p-pet002', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-016', quantidade: 300, unidade: 'g'  },
+      { ingredienteId: 'i-017', quantidade: 60,  unidade: 'g'  },
+      { ingredienteId: 'i-018', quantidade: 40,  unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 50,  unidade: 'ml' },
+      { ingredienteId: 'i-023', quantidade: 3,   unidade: 'g'  },
+    ],
+  },
+  {
+    id: 'f-pet007', produtoId: 'p-pet007', rendimento: 1,
     itens: [
       { ingredienteId: 'i-016', quantidade: 500, unidade: 'g'  },
       { ingredienteId: 'i-017', quantidade: 120, unidade: 'g'  },
@@ -641,8 +661,10 @@ const PRODUCT_PRICE_REVIEW = {
   'p-ene001': { custoCompra: 8.99, precoStatus: 'referência', fontePreco: PRICE_SOURCES.mundialBebidas },
   'p-ene002': { custoCompra: 9.85, precoStatus: 'verificado', fontePreco: PRICE_SOURCES.mundialBebidas },
   'p-aca001': { custoCompra: 9.00, precoStatus: 'provisório' },
-  'p-pet001': { custoCompra: 6.78, precoStatus: 'calculado' },
-  'p-pet002': { custoCompra: 13.40, precoStatus: 'calculado' },
+  'p-pet001': { custoCompra: 4.08, precoStatus: 'calculado' },
+  'p-pet006': { custoCompra: 6.78, precoStatus: 'calculado' },
+  'p-pet002': { custoCompra: 7.40, precoStatus: 'calculado' },
+  'p-pet007': { custoCompra: 13.40, precoStatus: 'calculado' },
   'p-pet003': { custoCompra: 10.59, precoStatus: 'calculado' },
   'p-pet004': { custoCompra: 12.65, precoStatus: 'calculado' },
   'p-pet005': { custoCompra: 26.24, precoStatus: 'calculado' },
@@ -759,6 +781,25 @@ if (!localStorage.getItem(PETISCOS_FICHAS_MIGRATION_KEY)) {
     Stores.fichas.set([...fichasAtuais, ...structuredClone(novasFichas)]);
   }
   localStorage.setItem(PETISCOS_FICHAS_MIGRATION_KEY, 'concluido');
+}
+
+// Divide as batatas em porções P e G, atualizando também instalações existentes.
+const BATATA_SIZES_MIGRATION_KEY = 'petisbar-batata-sizes-v1';
+if (!localStorage.getItem(BATATA_SIZES_MIGRATION_KEY)) {
+  const batataIds = new Set(['p-pet001', 'p-pet002', 'p-pet006', 'p-pet007']);
+  const produtosAtuais = Stores.produtos.get();
+  const produtosPorId = new Map(produtosAtuais.map(produto => [produto.id, produto]));
+  SEED_PRODUTOS.filter(produto => batataIds.has(produto.id)).forEach(defaults => {
+    const atual = produtosPorId.get(defaults.id);
+    if (atual) Object.assign(atual, structuredClone(defaults));
+    else produtosAtuais.push(structuredClone(defaults));
+  });
+  Stores.produtos.set(produtosAtuais);
+
+  const fichasBatata = SEED_FICHAS.filter(ficha => batataIds.has(ficha.produtoId));
+  const demaisFichas = Stores.fichas.get().filter(ficha => !batataIds.has(ficha.produtoId));
+  Stores.fichas.set([...demaisFichas, ...structuredClone(fichasBatata)]);
+  localStorage.setItem(BATATA_SIZES_MIGRATION_KEY, 'concluido');
 }
 
 const storedConfig = Stores.config.get();
