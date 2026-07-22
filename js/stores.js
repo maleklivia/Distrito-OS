@@ -18,7 +18,7 @@ const CATEGORIAS_PRODUTO = [
 ];
 
 const CATEGORIAS_INGREDIENTE = [
-  'Destilados', 'Frutas', 'Açúcares e Xaropes', 'Embalagens', 'Bebidas', 'Insumos', 'Outros',
+  'Destilados', 'Frutas', 'Açúcares e Xaropes', 'Embalagens', 'Bebidas', 'Hortifruti', 'Carnes', 'Laticínios', 'Temperos', 'Insumos', 'Outros',
 ];
 
 const UNIDADES = ['g', 'kg', 'ml', 'L', 'un', 'cx', 'sc'];
@@ -111,6 +111,16 @@ const SEED_INGREDIENTES = [
   { id: 'i-013', sku: 'INS013', nome: 'Cerveja Brahma 350ml', categoria: 'Bebidas',            unidade: 'un', estoqueAtual: 48,   estoqueMinimo: 24,   custoUnitario: 3.00,       fornecedor: 'Bebidas & Cia',     ativo: true },
   { id: 'i-014', sku: 'INS014', nome: 'Coca-Cola 350ml',      categoria: 'Bebidas',            unidade: 'un', estoqueAtual: 36,   estoqueMinimo: 12,   custoUnitario: 2.80,       fornecedor: 'Bebidas & Cia',     ativo: true },
   { id: 'i-015', sku: 'INS015', nome: 'Água Mineral 500ml',   categoria: 'Bebidas',            unidade: 'un', estoqueAtual: 48,   estoqueMinimo: 24,   custoUnitario: 1.20,       fornecedor: 'Bebidas & Cia',     ativo: true },
+  { id: 'i-016', sku: 'INS016', nome: 'Batata Palito',        categoria: 'Hortifruti',         unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 5,    custoUnitario: 7.40,       fornecedor: '',                  ativo: true },
+  { id: 'i-017', sku: 'INS017', nome: 'Cheddar Cremoso',      categoria: 'Laticínios',         unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 2,    custoUnitario: 28.00,      fornecedor: '',                  ativo: true },
+  { id: 'i-018', sku: 'INS018', nome: 'Bacon em Cubos',       categoria: 'Carnes',             unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 2,    custoUnitario: 34.00,      fornecedor: '',                  ativo: true },
+  { id: 'i-019', sku: 'INS019', nome: 'Calabresa',            categoria: 'Carnes',             unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 3,    custoUnitario: 24.00,      fornecedor: '',                  ativo: true },
+  { id: 'i-020', sku: 'INS020', nome: 'Frango a Passarinho',  categoria: 'Carnes',             unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 5,    custoUnitario: 17.80,      fornecedor: '',                  ativo: true },
+  { id: 'i-021', sku: 'INS021', nome: 'Isca de Carne',        categoria: 'Carnes',             unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 4,    custoUnitario: 21.40,      fornecedor: '',                  ativo: true },
+  { id: 'i-022', sku: 'INS022', nome: 'Óleo de Fritura',      categoria: 'Insumos',            unidade: 'L',  estoqueAtual: 0,    estoqueMinimo: 5,    custoUnitario: 8.50,       fornecedor: '',                  ativo: true },
+  { id: 'i-023', sku: 'INS023', nome: 'Sal',                  categoria: 'Temperos',           unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 1,    custoUnitario: 3.00,       fornecedor: '',                  ativo: true },
+  { id: 'i-024', sku: 'INS024', nome: 'Alho',                 categoria: 'Temperos',           unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 1,    custoUnitario: 18.00,      fornecedor: '',                  ativo: true },
+  { id: 'i-025', sku: 'INS025', nome: 'Cebola',               categoria: 'Hortifruti',         unidade: 'kg', estoqueAtual: 0,    estoqueMinimo: 2,    custoUnitario: 6.00,       fornecedor: '',                  ativo: true },
 ];
 
 /* ── Seed Data: Produtos (35 itens de bar) ───────────────────── */
@@ -580,6 +590,21 @@ if (!localStorage.getItem(STOCK_PLANNING_MIGRATION_KEY)) {
     }));
   Stores.ingredientes.set(ingredientesAtualizados);
   localStorage.setItem(STOCK_PLANNING_MIGRATION_KEY, 'concluido');
+}
+
+// Garante que os insumos dos petiscos apareçam em instalações que já tinham dados salvos.
+const PETISCOS_INGREDIENTES_MIGRATION_KEY = 'petisbar-petiscos-ingredientes-v1';
+if (!localStorage.getItem(PETISCOS_INGREDIENTES_MIGRATION_KEY)) {
+  const atuais = Stores.ingredientes.get();
+  const idsAtuais = new Set(atuais.map(ingrediente => ingrediente.id));
+  const novosInsumos = SEED_INGREDIENTES.filter(ingrediente =>
+    ['i-016', 'i-017', 'i-018', 'i-019', 'i-020', 'i-021', 'i-022', 'i-023', 'i-024', 'i-025'].includes(ingrediente.id)
+      && !idsAtuais.has(ingrediente.id)
+  );
+  if (novosInsumos.length) {
+    Stores.ingredientes.set([...atuais, ...structuredClone(novosInsumos)]);
+  }
+  localStorage.setItem(PETISCOS_INGREDIENTES_MIGRATION_KEY, 'concluido');
 }
 
 const storedConfig = Stores.config.get();
