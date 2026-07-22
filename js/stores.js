@@ -301,6 +301,51 @@ const SEED_FICHAS = [
       { ingredienteId: 'i-012', quantidade: 1,   unidade: 'un' },
     ],
   },
+  {
+    id: 'f-pet001', produtoId: 'p-pet001', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-016', quantidade: 500, unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 80,  unidade: 'ml' },
+      { ingredienteId: 'i-023', quantidade: 5,   unidade: 'g'  },
+    ],
+  },
+  {
+    id: 'f-pet002', produtoId: 'p-pet002', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-016', quantidade: 500, unidade: 'g'  },
+      { ingredienteId: 'i-017', quantidade: 120, unidade: 'g'  },
+      { ingredienteId: 'i-018', quantidade: 80,  unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 80,  unidade: 'ml' },
+      { ingredienteId: 'i-023', quantidade: 5,   unidade: 'g'  },
+    ],
+  },
+  {
+    id: 'f-pet003', produtoId: 'p-pet003', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-019', quantidade: 400, unidade: 'g'  },
+      { ingredienteId: 'i-025', quantidade: 100, unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 20,  unidade: 'ml' },
+    ],
+  },
+  {
+    id: 'f-pet004', produtoId: 'p-pet004', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-020', quantidade: 600, unidade: 'g'  },
+      { ingredienteId: 'i-024', quantidade: 15,  unidade: 'g'  },
+      { ingredienteId: 'i-023', quantidade: 8,   unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 80,  unidade: 'ml' },
+    ],
+  },
+  {
+    id: 'f-pet005', produtoId: 'p-pet005', rendimento: 1,
+    itens: [
+      { ingredienteId: 'i-021', quantidade: 500, unidade: 'g'  },
+      { ingredienteId: 'i-025', quantidade: 80,  unidade: 'g'  },
+      { ingredienteId: 'i-024', quantidade: 10,  unidade: 'g'  },
+      { ingredienteId: 'i-023', quantidade: 6,   unidade: 'g'  },
+      { ingredienteId: 'i-022', quantidade: 50,  unidade: 'ml' },
+    ],
+  },
 ];
 
 /* ── Domínio: Pedidos e Clientes ─────────────────────────────── */
@@ -605,6 +650,21 @@ if (!localStorage.getItem(PETISCOS_INGREDIENTES_MIGRATION_KEY)) {
     Stores.ingredientes.set([...atuais, ...structuredClone(novosInsumos)]);
   }
   localStorage.setItem(PETISCOS_INGREDIENTES_MIGRATION_KEY, 'concluido');
+}
+
+// Cria as fichas técnicas dos petiscos sem apagar fichas editadas manualmente.
+const PETISCOS_FICHAS_MIGRATION_KEY = 'petisbar-petiscos-fichas-v1';
+if (!localStorage.getItem(PETISCOS_FICHAS_MIGRATION_KEY)) {
+  const fichasAtuais = Stores.fichas.get();
+  const produtosComFicha = new Set(fichasAtuais.map(ficha => ficha.produtoId));
+  const novasFichas = SEED_FICHAS.filter(ficha =>
+    ['p-pet001', 'p-pet002', 'p-pet003', 'p-pet004', 'p-pet005'].includes(ficha.produtoId)
+      && !produtosComFicha.has(ficha.produtoId)
+  );
+  if (novasFichas.length) {
+    Stores.fichas.set([...fichasAtuais, ...structuredClone(novasFichas)]);
+  }
+  localStorage.setItem(PETISCOS_FICHAS_MIGRATION_KEY, 'concluido');
 }
 
 const storedConfig = Stores.config.get();
